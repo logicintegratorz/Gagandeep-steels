@@ -10,6 +10,7 @@
 param(
     [switch]$SkipComposer,
     [switch]$SkipBackup,
+    [switch]$AllowLocal,
     [string]$PhpPath = "",
     [string]$ComposerPath = "",
     [string]$PgDumpPath = ""
@@ -41,7 +42,9 @@ if (-not $php) { throw 'PHP was not found. Install PHP with pdo_pgsql enabled, o
 $envLines = Get-Content '.env' | Where-Object { $_ -match '^(APP_ENV|DB_CONNECTION)=' }
 $appEnvironment = ($envLines | Where-Object { $_ -match '^APP_ENV=' } | Select-Object -First 1) -replace '^APP_ENV=', ''
 $databaseDriver = ($envLines | Where-Object { $_ -match '^DB_CONNECTION=' } | Select-Object -First 1) -replace '^DB_CONNECTION=', ''
-if ($appEnvironment -ne 'production') { throw "Refusing deployment: APP_ENV must be production (current: $appEnvironment)." }
+if ($appEnvironment -ne 'production' -and -not ($AllowLocal -and $appEnvironment -eq 'local')) {
+    throw "Refusing deployment: APP_ENV must be production (current: $appEnvironment). Use -AllowLocal only for this local development machine."
+}
 if ($databaseDriver -ne 'pgsql') { throw "Refusing deployment: DB_CONNECTION must be pgsql (current: $databaseDriver)." }
 
 function Get-DotEnvValue([string]$name) {
@@ -99,4 +102,5 @@ try {
     & $php artisan up
 }
 
-Write-Host 'Deployment completed successfully with PostgreSQL.' -ForegroundColor Green
+$target = if ($appEnvironment -eq 'production') { 'production' } else { 'local' }
+Write-Host "Deployment completed successfully with PostgreSQL ($target)." -ForegroundColor Green
