@@ -1,22 +1,13 @@
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 $php = Join-Path $PSScriptRoot '.local/php/php.exe'
-$mysql = Join-Path $PSScriptRoot '.local/mysql-8.4.9-winx64/bin/mysqld.exe'
-if (!(Test-Path $php) -or !(Test-Path $mysql) -or !(Test-Path 'vendor/autoload.php') -or !(Test-Path '.env')) {
+if (!(Test-Path $php) -or !(Test-Path 'vendor/autoload.php') -or !(Test-Path '.env')) {
     throw 'Local setup is incomplete. See LOCAL-TESTING.md.'
 }
 $connection = New-Object System.Net.Sockets.TcpClient
-try { $connection.Connect('127.0.0.1', 3307); $databaseRunning = $true } catch { $databaseRunning = $false } finally { $connection.Dispose() }
+try { $connection.Connect('127.0.0.1', 5432); $databaseRunning = $true } catch { $databaseRunning = $false } finally { $connection.Dispose() }
 if (!$databaseRunning) {
-    $defaults = Join-Path $PSScriptRoot '.local/my.ini'
-    Start-Process -FilePath $mysql -ArgumentList ('--defaults-file="' + $defaults + '"') -WindowStyle Hidden | Out-Null
-    $ready = $false
-    for ($attempt = 0; $attempt -lt 30; $attempt++) {
-        Start-Sleep -Seconds 1
-        $connection = New-Object System.Net.Sockets.TcpClient
-        try { $connection.Connect('127.0.0.1', 3307); $ready = $true; break } catch {} finally { $connection.Dispose() }
-    }
-    if (!$ready) { throw 'MySQL did not start. Check .local/mysql-error.log.' }
+    throw 'PostgreSQL is not running on 127.0.0.1:5432. Start the postgresql-x64-18 Windows service and try again.'
 }
 & $php artisan migrate --force
 if ($LASTEXITCODE -ne 0) { throw 'Database migration failed.' }

@@ -41,7 +41,7 @@ final class FreightRateTest extends TestCase
         $this->delete(route('rates.destroy', $rate), ['version' => 2])->assertRedirect(route('rates.index'));
         $this->assertDatabaseCount('freight_rates', 0);
     }
-    public function test_filters_sorting_and_pagination_are_applied_in_mysql(): void
+    public function test_filters_sorting_and_pagination_are_applied_in_postgresql(): void
     {
         FreightRate::create($this->payload(['destination' => 'Delhi', 'price' => '2000.00']));
         FreightRate::create($this->payload(['destination' => 'Jaipur', 'price' => '1000.00']));

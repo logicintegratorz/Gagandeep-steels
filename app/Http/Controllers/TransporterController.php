@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 use App\Models\Transporter;
 use App\Models\FreightRate;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
@@ -112,7 +111,11 @@ final class TransporterController
             }
         }
         return $request->validate([
-            'name' => ['required', 'string', 'max:150', Rule::unique('transporters', 'name')->ignore($transporter?->id)],
+            'name' => ['required', 'string', 'max:150', function ($attribute, $value, $fail) use ($transporter) {
+                $duplicate = Transporter::query()->whereRaw('LOWER(name) = ?', [mb_strtolower($value)])
+                    ->when($transporter, fn ($query) => $query->whereKeyNot($transporter->id))->exists();
+                if ($duplicate) $fail('This transporter already exists.');
+            }],
             'contact_person' => ['required', 'string', 'max:100'],
             'phone' => ['required', 'string', 'regex:/^\+?[0-9]{7,15}$/'],
             'gst_number' => ['nullable', 'string', 'regex:/^[0-9A-Z]{15}$/'],

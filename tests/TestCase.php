@@ -12,9 +12,9 @@ abstract class TestCase extends FrameworkTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $database = (string) config('database.connections.mysql.database');
-        if (config('database.default') !== 'mysql' || !str_ends_with($database, '_test')) {
-            throw new \RuntimeException('Tests require a disposable MySQL database ending in _test. Configure .env.testing first.');
+        $database = (string) config('database.connections.pgsql.database');
+        if (config('database.default') !== 'pgsql' || !str_ends_with($database, '_test')) {
+            throw new \RuntimeException('Tests require a disposable PostgreSQL database ending in _test. Configure .env.testing first.');
         }
         // Guard above runs BEFORE destructive test-only schema recreation.
         $this->artisan('migrate:fresh', ['--force' => true])->assertSuccessful();

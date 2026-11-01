@@ -23,8 +23,9 @@ class LeadActionsTest extends TestCase {
   $lead=Lead::create(['name'=>'Admin lead','owner_id'=>$admin->id]);
   $data=['kind'=>'Task','title'=>'Call the buyer','priority'=>'Normal','due_at'=>now()->subMinute()->format('Y-m-d\TH:i'),'assigned_to'=>$worker->id];
   $this->post(route('leads.work.store',$lead),$data)->assertSessionHasNoErrors();$item=LeadWorkItem::firstOrFail();$this->assertSame($worker->id,$item->assigned_to);
-  $this->assertSame(0,LeadReminders::deliver($admin->id));$this->assertSame(1,LeadReminders::deliver($worker->id));
-  $this->assertDatabaseHas('crm_notifications',['user_id'=>$worker->id,'title'=>'Task due: Call the buyer']);
+  $this->assertSame(2,LeadReminders::deliver($admin->id));$this->assertSame(0,LeadReminders::deliver($worker->id));
+  $this->assertDatabaseHas('crm_notifications',['user_id'=>$admin->id,'title'=>'Overdue Task: Call the buyer']);
+  $this->assertDatabaseHas('crm_notifications',['user_id'=>$worker->id,'title'=>'Overdue Task: Call the buyer']);
   $this->signIn($worker);$this->get(route('leads.work'))->assertOk()->assertSee('Call the buyer');
   $this->post(route('leads.work.status',$item),['version'=>1,'status'=>'Completed'])->assertSessionHasNoErrors();
   $this->put(route('leads.work.update',$item),array_merge($data,['version'=>2,'kind'=>'Reminder']))->assertForbidden();

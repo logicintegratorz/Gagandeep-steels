@@ -137,6 +137,14 @@ Route::middleware(['auth', 'session.limits', 'active.lead.call', 'crm.notificati
     Route::post('/sidebar-groups', [\App\Http\Controllers\SidebarGroupController::class, 'store'])->name('sidebar-groups.store');
     Route::put('/sidebar-groups/{sidebarGroup}', [\App\Http\Controllers\SidebarGroupController::class, 'update'])->name('sidebar-groups.update');
     Route::delete('/sidebar-groups/{sidebarGroup}', [\App\Http\Controllers\SidebarGroupController::class, 'destroy'])->name('sidebar-groups.destroy');
+    Route::post('/sidebar-items/{itemKey}/move', [\App\Http\Controllers\SidebarGroupController::class, 'move'])->name('sidebar-items.move');
+    Route::post('/sidebar-items/reorder', [\App\Http\Controllers\SidebarGroupController::class, 'reorder'])->name('sidebar-items.reorder');
+    Route::get('/content-manager', [\App\Http\Controllers\ContentManagerController::class, 'index'])->name('content-manager.index');
+    Route::post('/content-manager', [\App\Http\Controllers\ContentManagerController::class, 'store'])->name('content-manager.store');
+    Route::put('/content-manager/{document}', [\App\Http\Controllers\ContentManagerController::class, 'update'])->name('content-manager.update');
+    Route::delete('/content-manager/{document}', [\App\Http\Controllers\ContentManagerController::class, 'destroy'])->name('content-manager.destroy');
+    Route::get('/content-manager/{document}/open', [\App\Http\Controllers\ContentManagerController::class, 'open'])->name('content-manager.open');
+    Route::get('/content-manager/{document}/download', [\App\Http\Controllers\ContentManagerController::class, 'download'])->name('content-manager.download');
     Route::get('/transporters', [TransporterController::class, 'index'])->middleware('permission:transporters.view')->name('transporters.index');
     Route::get('/transporters/options', [TransporterController::class, 'options'])->middleware('permission:transporters.view,rates.view')->name('transporters.options');
     Route::post('/transporters', [TransporterController::class, 'store'])->middleware('permission:transporters.create')->name('transporters.store');

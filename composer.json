@@ -1,9 +1,9 @@
 {
-  "name": "hauldesk/freight-crm", "type": "project", "description": "Laravel Blade and MySQL freight rate CRM", "license": "proprietary",
+  "name": "hauldesk/freight-crm", "type": "project", "description": "Laravel Blade and PostgreSQL CRM", "license": "proprietary",
   "require": {
     "php": "^8.3",
     "ext-pdo": "*",
-    "ext-pdo_mysql": "*",
+    "ext-pdo_pgsql": "*",
     "endroid/qr-code": "^6.0",
     "laravel/framework": "^13.0"
   },

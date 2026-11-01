@@ -1,4 +1,5 @@
 <x-app-layout title="Sidebar groups">
+    <link rel="stylesheet" href="{{ asset('css/content-manager.css').'?v='.filemtime(public_path('css/content-manager.css')) }}">
     <header class="page-heading">
         <div><span class="eyebrow">ADMINISTRATION</span><h1>Sidebar groups</h1><p>Create named groups and choose which navigation buttons appear inside each group.</p></div>
     </header>

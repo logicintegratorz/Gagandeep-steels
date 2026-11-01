@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 final class LeadSetting extends Model {
  protected $guarded=['id'];
  protected $hidden=['email_password','whatsapp_token'];
- protected function casts():array{return ['weights'=>'array','email_config'=>'array','email_password'=>'encrypted','whatsapp_config'=>'array','whatsapp_token'=>'encrypted','version'=>'integer'];}
+ protected function casts():array{return ['weights'=>'array','email_config'=>'array','email_password'=>'encrypted','whatsapp_config'=>'array','whatsapp_token'=>'encrypted','version'=>'integer','same_stage_alert_days'=>'integer'];}
  const FIELDS=['name'=>'Name','company'=>'Company name','created_by'=>'Added by','website'=>'Website','email'=>'Email','whatsapp'=>'WhatsApp number','phone'=>'Phone number','alt_phone'=>'Alt number','location'=>'Location','source'=>'Source','category'=>'Category'];
  public function score(Lead $lead):int {
   $score=0;

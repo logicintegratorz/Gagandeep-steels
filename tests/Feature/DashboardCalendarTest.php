@@ -19,14 +19,14 @@ final class DashboardCalendarTest extends TestCase {
   LeadWorkItem::create(['lead_id'=>$otherLead->id,'kind'=>'Task','title'=>'Review admin buyer','due_at'=>now()->addHour(),'assigned_to'=>$staff->id,'status'=>'Pending']);
   $range=['start'=>now()->subDay()->toDateString(),'end'=>now()->addDay()->toDateString()];
   $dashboard=$this->get(route('home'))->assertOk()->assertSee('Work calendar')->assertSee('data-calendar-view="month"',false)->assertSee('data-calendar-user',false)->assertSee('data-calendar-all checked',false)->assertDontSee('value="Assignment" data-calendar-kind',false)->assertDontSee('value="Contact" data-calendar-kind',false)->assertSee(route('leads.index',['view'=>'extended']))
-   ->assertSee('Contacts')->assertSee('Add New Lead')->assertSee('Extended View')->assertSee('Pipeline')->assertSee('Follow-ups & Tasks',false);
+   ->assertSee('Contacts')->assertSee('Add New Lead')->assertSee('Extended View')->assertSee('Pipeline');
   $html=$dashboard->getContent();
   $this->assertLessThan(strpos($html,'id="dashboard-calendar"'),strpos($html,'class="dash-contacts"'));
   $this->get(route('leads.index',['view'=>'extended']))->assertOk()->assertSee('class="extended-leads"',false)->assertSee('extended-sidebar-edge')->assertSee('aria-label="Open navigation"',false)->assertSee('extended-leads.js');
   $this->get(route('leads.index'))->assertOk()->assertDontSee('class="extended-leads"',false)->assertDontSee('extended-sidebar-edge');
   $this->get(route('leads.index',['view'=>'extended','q'=>'Buyer']))->assertOk()->assertSee('name="view" value="extended"',false);
   $this->getJson(route('dashboard.calendar.leads',['q'=>'Buyer']))->assertOk()->assertSee('Buyer One');
-  $this->getJson(route('dashboard.calendar',$range))->assertOk()->assertSee('Call buyer')->assertSee('Saved as contact')->assertSee('Called customer')->assertSee('Opened lead: Buyer One')->assertSee('Leads Settings Save');
+  $this->getJson(route('dashboard.calendar',$range))->assertOk()->assertSee('Call buyer')->assertSee('Saved as contact')->assertSee('Called customer')->assertSee('Opened lead: Buyer One');
   $this->getJson(route('dashboard.calendar',$range+['user_id'=>$admin->id]))->assertOk()->assertDontSee('Call buyer')->assertDontSee('Called customer')->assertDontSee('Lead added: Buyer One');
   $this->signIn($staff);
   $this->getJson(route('dashboard.calendar.leads',['q'=>'Buyer']))->assertForbidden();

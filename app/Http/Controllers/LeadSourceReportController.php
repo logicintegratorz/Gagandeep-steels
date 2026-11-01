@@ -29,7 +29,7 @@ final class LeadSourceReportController
         ];
 
         $rows = (clone $events)
-            ->selectRaw('source, COUNT(*) total, SUM(deleted_at IS NOT NULL) deleted, SUM(lost_at IS NOT NULL) lost, MIN(received_at) first_received_at, MAX(received_at) last_received_at, MAX(lost_at) last_lost_at, MAX(deleted_at) last_deleted_at')
+            ->selectRaw('source, COUNT(*) total, SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) deleted, SUM(CASE WHEN lost_at IS NOT NULL THEN 1 ELSE 0 END) lost, MIN(received_at) first_received_at, MAX(received_at) last_received_at, MAX(lost_at) last_lost_at, MAX(deleted_at) last_deleted_at')
             ->groupBy('source')
             ->orderByDesc('total')
             ->get();

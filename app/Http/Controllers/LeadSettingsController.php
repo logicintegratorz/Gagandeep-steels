@@ -8,7 +8,12 @@ final class LeadSettingsController {
  public function index(Request $r){abort_unless($r->user()->isAdmin(),403);return view('leads.settings',['settings'=>LeadSetting::findOrFail(1),'backupSettings'=>\App\Models\LeadBackupSetting::findOrFail(1),'backups'=>\App\Models\LeadBackup::latest('backed_up_at')->paginate(15)]);}
  public function save(Request $r){
   abort_unless($r->user()->isAdmin(),403);
-  $data=$r->validate(['section'=>'required|in:weights,email,tenure','version'=>'required|integer']);
+  $data=$r->validate(['section'=>'required|in:weights,email,tenure,stage_alert','version'=>'required|integer']);
+  if($data['section']==='stage_alert'){
+   $values=$r->validate(['same_stage_alert_days'=>'required|integer|min:1|max:3650']);
+   DB::transaction(function()use($data,$values){$settings=LeadSetting::lockForUpdate()->findOrFail(1);if($settings->version!==(int)$data['version'])throw ValidationException::withMessages(['version'=>'Lead settings changed elsewhere. Refresh and try again.']);$settings->same_stage_alert_days=$values['same_stage_alert_days'];$settings->version++;$settings->save();\App\Models\OverdueAlert::where('source_type',\App\Support\StagnantLeadAlerts::TYPE)->delete();});
+   return back()->with('success','Same-stage lead alert duration saved. Alerts will use the new duration.');
+  }
   if($data['section']==='tenure'){
    $values=$r->validate(['backup_after_days'=>'required|integer|min:1|max:3650','delete_after_days'=>'required|integer|min:1|max:3650']);
    DB::transaction(function()use($data,$values){$settings=\App\Models\LeadBackupSetting::lockForUpdate()->findOrFail(1);if($settings->version!==(int)$data['version'])throw ValidationException::withMessages(['version'=>'Backup settings changed elsewhere. Refresh and try again.']);$settings->fill($values);$settings->version++;$settings->save();\App\Models\LeadBackup::query()->orderBy('id')->chunkById(100,function($backups)use($values){foreach($backups as $backup){$backup->purge_at=$backup->backed_up_at->copy()->addDays($values['delete_after_days']);$backup->save();}});});

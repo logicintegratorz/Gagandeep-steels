@@ -25,17 +25,17 @@ class LeadDetailsTest extends TestCase {
  }
  public function test_phone_qr_call_outcomes_and_message_logs_are_recorded(){
   $admin=$this->signIn();$lead=Lead::create(['name'=>'Call Buyer','owner_id'=>$admin->id,'phone'=>'+91 98765-43210']);
-  $page=$this->get(route('leads.show',$lead))->assertOk()->assertSee('data-lead-call-open',false)->assertSee('Call Answered')->assertSee('Call Unanswered')->assertDontSee('data-lead-call-close',false);
+  $page=$this->get(route('leads.show',$lead))->assertOk()->assertSee('data-lead-call-open',false)->assertSee('Call Answered')->assertSee('Call Unanswered')->assertSee('data-lead-call-close',false);
   $this->assertStringContainsString('data-lead-call-dialog',$page->getContent());
   $page->assertSee('href="tel:+919876543210"',false)->assertSee('Need help calling / connect mobile')->assertSee('https://phonelink.microsoft.com/',false);
   $this->get(route('leads.call.qr',$lead))->assertOk()->assertHeader('content-type','image/svg+xml')->assertSee('<svg',false);
-  $this->postJson(route('leads.call.start',$lead))->assertOk()->assertJson(['locked'=>true]);
-  $this->assertSame($lead->id,session('active_lead_call_id'));
+  $this->postJson(route('leads.call.start',$lead))->assertOk()->assertJson(['locked'=>false]);
+  $this->assertNull(session('active_lead_call_id'));
   $this->getJson(route('session.status'))->assertOk()->assertJsonStructure(['idleExpiresAt','midnightExpiresAt','serverNow']);
   $this->getJson(route('notifications.count'))->assertOk();
-  $this->get(route('home'))->assertRedirect(route('leads.show',$lead));
+  $this->get(route('home'))->assertOk();
   $this->post(route('leads.call.outcome',$lead),['outcome'=>'Connected','details'=>'','request_key'=>(string)Str::uuid()])->assertSessionHasErrors('details');
-  $this->assertSame($lead->id,session('active_lead_call_id'));
+  $this->assertNull(session('active_lead_call_id'));
   $this->post(route('leads.call.outcome',$lead),['outcome'=>'Connected','details'=>'Buyer requested the latest rates.','request_key'=>(string)Str::uuid()])->assertSessionHasNoErrors();
   $this->assertNull(session('active_lead_call_id'));
   $this->assertDatabaseHas('lead_activities',['lead_id'=>$lead->id,'kind'=>'Call log','action'=>'Outgoing call: Connected','details'=>'Buyer requested the latest rates.']);

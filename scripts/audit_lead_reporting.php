@@ -27,7 +27,7 @@ $check('backup settings row', LeadBackupSetting::find(1) !== null);
 $check('public avatar storage link', is_dir(public_path('storage')));
 
 $sourceRows = LeadSourceEvent::query()
-    ->selectRaw('source, COUNT(*) total, SUM(deleted_at IS NOT NULL) deleted, SUM(lost_at IS NOT NULL) lost')
+    ->selectRaw('source, COUNT(*) total, SUM(CASE WHEN deleted_at IS NOT NULL THEN 1 ELSE 0 END) deleted, SUM(CASE WHEN lost_at IS NOT NULL THEN 1 ELSE 0 END) lost')
     ->groupBy('source')
     ->get();
 $check('source aggregation query', true, $sourceRows->count().' source(s)');

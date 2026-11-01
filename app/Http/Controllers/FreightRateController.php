@@ -35,7 +35,7 @@ final class FreightRateController
             if (filled($filters[$filter] ?? null)) {
                 // City filters match from the beginning, with literal user input.
                 $prefix = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], trim($filters[$filter])).'%';
-                $query->whereRaw("{$column} LIKE ? ESCAPE '!'", [$prefix]);
+                $query->whereRaw("LOWER({$column}) LIKE LOWER(?) ESCAPE '!'", [$prefix]);
             }
         }
         if (filled($filters['transporter'] ?? null)) { $query->where('transporter', $filters['transporter']); }

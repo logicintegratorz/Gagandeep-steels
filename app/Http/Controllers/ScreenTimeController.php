@@ -35,7 +35,7 @@ final class ScreenTimeController
                     ? $entry->last_seen_at->diffInSeconds($now, false)
                     : 0;
                 $secondsToAdd = $elapsed > 0 && $elapsed <= self::HEARTBEAT_GRACE_SECONDS
-                    ? min($elapsed, self::HEARTBEAT_MAX_SECONDS)
+                    ? (int) floor(min($elapsed, self::HEARTBEAT_MAX_SECONDS))
                     : 0;
 
                 $entry->forceFill([
@@ -69,7 +69,7 @@ final class ScreenTimeController
                 ? $entry->last_seen_at->diffInSeconds($now, false)
                 : 0;
             $secondsToAdd = $elapsed > 0 && $elapsed <= self::HEARTBEAT_GRACE_SECONDS
-                ? min($elapsed, self::HEARTBEAT_MAX_SECONDS)
+                ? (int) floor(min($elapsed, self::HEARTBEAT_MAX_SECONDS))
                 : 0;
 
             $entry->forceFill([

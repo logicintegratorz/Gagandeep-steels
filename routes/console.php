@@ -23,6 +23,9 @@ Artisan::command('crm:create-admin {--name=} {--email=}', function () {
 Artisan::command('crm:lead-reminders', function () { $this->info(\App\Support\LeadReminders::deliver().' overdue alerts delivered to responsible users and administrators.'); });
 \Illuminate\Support\Facades\Schedule::command('crm:lead-reminders')->everyMinute()->withoutOverlapping();
 
+Artisan::command('crm:stagnant-leads', function () { $this->info(\App\Support\StagnantLeadAlerts::deliver().' same-stage lead alerts delivered to responsible users and administrators.'); });
+\Illuminate\Support\Facades\Schedule::command('crm:stagnant-leads')->hourly()->withoutOverlapping();
+
 Artisan::command('crm:sync-leads', function () { foreach(\App\Models\LeadConnection::where('enabled',true)->where('provider','!=','Justdial')->get() as $connection) \App\Support\LeadSync::run($connection);$this->info('Lead connections checked.'); });
 \Illuminate\Support\Facades\Schedule::command('crm:sync-leads')->everyFifteenMinutes()->withoutOverlapping();
 

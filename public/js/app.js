@@ -197,6 +197,55 @@
       button.querySelector('span').textContent = 'Saving…';
     });
   });
+  const reorderNavigation = document.querySelector('[data-sidebar-reorder-url]');
+  if (reorderNavigation) {
+    let dragged = null;
+    let dragAllowed = false;
+    const containers = [reorderNavigation, ...reorderNavigation.querySelectorAll('.sidebar-group-items')];
+    reorderNavigation.querySelectorAll('[data-sidebar-key]').forEach(item => {
+      const handle = item.querySelector('[data-sidebar-drag-handle]');
+      handle?.addEventListener('pointerdown', () => { dragAllowed = true; });
+      item.addEventListener('dragstart', event => {
+        if (!dragAllowed) { event.preventDefault(); return; }
+        dragged = item;
+        item.classList.add('is-dragging');
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', item.dataset.sidebarKey);
+      });
+      item.addEventListener('dragend', async () => {
+        dragAllowed = false;
+        item.classList.remove('is-dragging');
+        if (!dragged) return;
+        dragged = null;
+        const order = Array.from(reorderNavigation.querySelectorAll('[data-sidebar-key]'), element => element.dataset.sidebarKey);
+        reorderNavigation.classList.add('is-saving-order');
+        try {
+          const response = await fetch(reorderNavigation.dataset.sidebarReorderUrl, {
+            method: 'POST', credentials: 'same-origin',
+            headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
+            body: JSON.stringify({order})
+          });
+          if (!response.ok) throw new Error('Could not save sidebar order.');
+          reorderNavigation.classList.add('order-saved');
+          setTimeout(() => reorderNavigation.classList.remove('order-saved'), 900);
+        } catch (error) {
+          window.alert(error.message + ' The previous order will be restored.');
+          window.location.reload();
+        } finally {
+          reorderNavigation.classList.remove('is-saving-order');
+        }
+      });
+    });
+    containers.forEach(container => container.addEventListener('dragover', event => {
+      if (!dragged || dragged.parentElement !== container) return;
+      event.preventDefault();
+      const target = event.target.closest('[data-sidebar-key]');
+      if (!target || target === dragged || target.parentElement !== container) return;
+      const box = target.getBoundingClientRect();
+      container.insertBefore(dragged, event.clientY > box.top + box.height / 2 ? target.nextSibling : target);
+    }));
+    document.addEventListener('pointerup', () => { dragAllowed = false; });
+  }
   window.addEventListener('pageshow', event => {
     const activeCall = document.querySelector('[data-lead-call-dialog][open], [data-lead-call-dialog][data-call-active="1"]');
     if (event.persisted && !activeCall) window.location.reload();

@@ -58,8 +58,9 @@ class UntouchedLeadFlowTest extends TestCase {
   $claimed=Lead::create(['name'=>'Assigned inquiry','owner_id'=>$admin->id,'claimed_by'=>$admin->id,'claimed_at'=>now()]);
   $yesterday=Lead::create(['name'=>'Older untouched','created_at'=>now()->subDays(2)]);
   $today=now('Asia/Kolkata')->format('Y-m-d');
-  $this->post(route('leads.untouched.delete'),['from'=>$today,'to'=>$today])->assertRedirect(route('home'));
-  $this->assertSoftDeleted($old);
+  $this->post(route('leads.untouched.delete'),['from'=>$today,'to'=>$today])->assertRedirect(route('leads.archived'));
+  $this->assertNull($old->fresh()->deleted_at);
+  $this->assertNotNull($old->fresh()->untouched_archived_at);
   $this->assertNotNull($saved->fresh());
   $this->assertNotNull($claimed->fresh());
   $this->assertNotNull($yesterday->fresh());
@@ -70,10 +71,10 @@ class UntouchedLeadFlowTest extends TestCase {
   $this->assertSame($old->id,$new->repeatMatches()->first()->previous_lead_id);
   $this->get(route('home'))->assertSee('Received again');
   $this->get(route('leads.show',$new))->assertSee('Received before')->assertSee('View earlier history');
-  $this->get(route('leads.history',$old->id))->assertOk()->assertSee('Archived lead')->assertSee('Quotation discussed')->assertSee('Price quote 100 per tonne');
+  $this->get(route('leads.history',$old->id))->assertOk()->assertSee('Untouched lead archived')->assertSee('Quotation discussed')->assertSee('Price quote 100 per tonne');
   $new->delete();
-  LeadImport::ingest($connection,['UNIQUE_QUERY_ID'=>'im-10','SENDER_NAME'=>'Buyer A','SENDER_MOBILE'=>'9876543210','SENDER_COMPANY'=>'A Steel','SENDER_CITY'=>'Delhi']);
+  $this->assertFalse(LeadImport::ingest($connection,['UNIQUE_QUERY_ID'=>'im-10','SENDER_NAME'=>'Buyer A','SENDER_MOBILE'=>'9876543210','SENDER_COMPANY'=>'A Steel','SENDER_CITY'=>'Delhi']));
   $third=Lead::where('connection_id',$connection->id)->where('external_id','im-10')->firstOrFail();
-  $this->assertSame(2,$third->repeatMatches()->count());
+  $this->assertSame($old->id,$third->id);
  }
 }

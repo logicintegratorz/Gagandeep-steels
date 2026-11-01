@@ -23,3 +23,4 @@
  @endif
 </nav>
 @if($errors->any())<div class="lead-errors" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
+@if($settingsNav && isset($settings))@include('leads.stage-alert-settings')@endif

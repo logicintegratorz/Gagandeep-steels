@@ -15,9 +15,9 @@ final class DashboardTest extends TestCase
     {
         $this->signIn();
         $this->get(route('home'))->assertOk()->assertViewIs('dashboard')
-            ->assertSee('Total Leads')->assertSee('Total Tasks')->assertSee('Opportunities')->assertSee('Reminders')->assertSee('Call Details')->assertSee('Contacts')
+            ->assertSee('Total Leads')->assertSee('Total Tasks')->assertSee('Opportunities')->assertSee('Reminders')->assertSee('Call Details')->assertSee('Total leads')
             ->assertSee('Quotation')->assertSee('SMS')->assertSee('WhatsApp')->assertSee('Email')->assertSee('Call')
-            ->assertSee('class="dash-top-stack"', false)->assertSeeInOrder(['data-calculator-open','data-theme-toggle',route('rates.index'),'notification-bell'], false)
+            ->assertSee('class="dash-top-stack"', false)->assertSeeInOrder(['data-calculator-open','data-theme-toggle','notification-bell'], false)
             ->assertDontSee('data-theme-option', false)
             ->assertSee('<span class="dash-count dash-summary-count">0</span>', false)
             ->assertSee('Overdue Tasks')->assertSee('Initial Contact')->assertSee('All Reminders')

@@ -9,7 +9,7 @@
         $unassignedSidebarItems = collect($sidebarItems)->except($assignedSidebarKeys);
         $chatUnread = \App\Models\DirectMessage::where('recipient_id', auth()->id())->whereNull('read_at')->count();
     @endphp
-    <nav>
+    <nav @if(auth()->user()->isAdmin()) data-sidebar-reorder-url="{{ route('sidebar-items.reorder') }}" @endif>
         @foreach($unassignedSidebarItems as $item)@include('components.sidebar-link', ['item' => $item, 'chatUnread' => $chatUnread])@endforeach
         @foreach($sidebarGroups as $sidebarGroup)
             @php($groupSidebarItems = $sidebarGroup->items->map(fn($entry) => $sidebarItems[$entry->item_key] ?? null)->filter())

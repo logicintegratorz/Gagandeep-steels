@@ -3,12 +3,14 @@
 namespace App\Support;
 
 use App\Models\User;
+use App\Models\SidebarItemOrder;
+use Illuminate\Support\Facades\Schema;
 
 final class SidebarNavigation
 {
     public static function definitions(): array
     {
-        return [
+        $definitions = [
             'dashboard' => ['label' => 'Dashboard', 'icon' => 'box'],
             'leads' => ['label' => 'Leads', 'icon' => 'users'],
             'lead-source-report' => ['label' => 'Lead source report', 'icon' => 'task-list'],
@@ -22,6 +24,7 @@ final class SidebarNavigation
             'note' => ['label' => 'Note', 'icon' => 'edit'],
             'lead-work' => ['label' => 'Follow-ups, Tasks & Reminders', 'icon' => 'check'],
             'activities' => ['label' => 'Activities', 'icon' => 'task-list'],
+            'content-manager' => ['label' => 'Content Manager', 'icon' => 'menu'],
             'products' => ['label' => 'Products & pricing', 'icon' => 'box'],
             'product-logs' => ['label' => 'Global log sheet', 'icon' => 'menu'],
             'sizes' => ['label' => 'All sizes', 'icon' => 'box'],
@@ -35,6 +38,11 @@ final class SidebarNavigation
             'notifications' => ['label' => 'Notifications', 'icon' => 'bell'],
             'account' => ['label' => 'My account', 'icon' => 'lock'],
         ];
+        if (!Schema::hasTable('sidebar_item_orders')) return $definitions;
+        $positions = SidebarItemOrder::pluck('position', 'item_key');
+        $fallback = array_flip(array_keys($definitions));
+        uksort($definitions, fn ($a, $b) => ($positions[$a] ?? 1000 + $fallback[$a]) <=> ($positions[$b] ?? 1000 + $fallback[$b]));
+        return $definitions;
     }
 
     public static function visible(User $user): array
@@ -55,6 +63,7 @@ final class SidebarNavigation
             'note' => [$leads, route('productivity.index','notes'), request()->is('productivity/notes')],
             'lead-work' => [$leads && ($user->allows('leads.tasks') || $user->allows('leads.followups') || $user->allows('leads.reminders')), route('leads.work'), request()->routeIs('leads.work')],
             'activities' => [true, route('activities.index'), request()->routeIs('activities.*')],
+            'content-manager' => [true, route('content-manager.index'), request()->routeIs('content-manager.*')],
             'products' => [$user->allows('products.view') || $user->allows('products.create') || $user->allows('products.edit'), route('products.index'), request()->routeIs('products.*') && !request()->routeIs('products.logs')],
             'product-logs' => [$user->allows('products.view'), route('products.logs'), request()->routeIs('products.logs')],
             'sizes' => [$user->allows('products.view'), route('sizes.index'), request()->routeIs('sizes.index')],
