@@ -1,0 +1,1 @@
+<x-auth-layout title="Something went wrong"><p>Please try again shortly. If this continues, contact your administrator.</p><a class="button primary" href="{{ route('home') }}">Back to CRM</a></x-auth-layout>

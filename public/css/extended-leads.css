@@ -1,0 +1,44 @@
+@media (min-width: 851px) {
+  .extended-leads .main { margin-left: 0; }
+  .extended-leads .content { max-width: none; }
+  .extended-leads .sidebar { transform: translateX(-100%); box-shadow: 8px 0 26px #0b19382b; }
+  .extended-leads.extended-sidebar-open .sidebar { transform: translateX(0); }
+  .extended-leads .extended-sidebar-edge { position: fixed; inset: 0 auto 0 0; width: 22px; z-index: 19; border: 0; background: transparent; color: var(--primary); cursor: pointer; padding: 0; }
+  .extended-leads .extended-sidebar-edge span { position: absolute; top: 45%; left: 0; display: grid; place-items: center; width: 22px; height: 68px; border: 1px solid var(--border); border-left: 0; border-radius: 0 9px 9px 0; background: var(--surface, #fff); box-shadow: 2px 3px 12px #0b19381c; }
+  .extended-leads .extended-sidebar-edge:hover span, .extended-leads .extended-sidebar-edge:focus-visible span { width: 32px; }
+  .extended-leads.extended-sidebar-open .extended-sidebar-edge { opacity: 0; pointer-events: none; }
+}
+@media (max-width: 850px) { .extended-leads .extended-sidebar-edge { display: none; } }
+
+/* Extended View keeps only its title and filters in view while the list scrolls. */
+@media (min-width: 851px) {
+  .extended-leads .lead-nav { display: none; }
+  .extended-leads .extended-lead-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: -22px -22px 18px;
+    padding: 22px 22px 4px;
+    background: var(--surface, #fff);
+    border-bottom: 1px solid var(--border, #dce4ee);
+    box-shadow: 0 4px 10px #102b4a0d;
+  }
+  .extended-leads .extended-lead-sticky-header .lead-filters { margin-bottom: 14px; }
+}
+
+.extended-lead-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.extended-lead-heading-actions .button { min-height: 38px; }
+.extended-lead-heading-actions .lead-list-count { padding: 6px 9px; }
+.extended-lead-heading-actions .lead-list-count-untouched { background: #fff3dc; border-color: #f2d7a0; color: #805000; }
+.extended-lead-heading-actions .lead-list-count-touched { background: #e8f1ff; border-color: #b9d3f4; color: #084caf; }
+.extended-lead-panel .lead-list-heading { align-items: flex-start; }
+@media (max-width: 850px) {
+  .extended-leads .lead-nav { display: none; }
+  .extended-lead-heading-actions { justify-content: flex-start; }
+}

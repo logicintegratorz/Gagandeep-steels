@@ -1,0 +1,1 @@
+<x-auth-layout title="Access restricted"><p>Your role does not have permission for this action. Contact your administrator if you need access.</p><a class="button primary" href="{{ route('home') }}">Back to CRM</a></x-auth-layout>

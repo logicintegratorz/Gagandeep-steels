@@ -1,0 +1,68 @@
+/* Consistent compact spacing without shrinking click targets. */
+@media (min-width: 851px) {
+  body .content { padding: 24px 28px; }
+  body .topbar { min-height: 64px; padding: 8px 28px; }
+  body .page-heading { margin-bottom: 18px; }
+  body .page-heading h1 { font-size: 30px; margin-bottom: 5px; }
+  body .stats { gap: 12px; margin-bottom: 16px; }
+  body .stat { padding: 15px 17px; }
+  body .stat:first-child { padding-top: 13px; }
+  body .stat > strong { margin: 8px 0 4px; font-size: 26px; }
+  body .panel { margin-bottom: 16px; }
+  body .panel-heading { padding: 16px 18px 0; }
+  body .list-heading { padding: 16px 18px; }
+  body .filters { padding: 0 18px 16px; }
+  body .rate-form, body .transporter-form { padding: 18px; }
+  body .table-footer { padding: 11px 18px; }
+  body:not(.dashboard-page) th { padding: 10px 14px; }
+  body:not(.dashboard-page) td { padding: 11px 14px; }
+  body .lead-nav { gap: 8px; margin-bottom: 12px; }
+  body .lead-panel { padding: 16px; }
+  body .lead-panel h2 { margin-bottom: 12px; }
+  body .lead-grid { gap: 12px; margin: 12px 0; }
+  body .lead-panel th, body .lead-panel td { padding: 10px 12px; }
+  body .lead-profile-top { padding: 18px 20px; gap: 16px; }
+  body .lead-meta-item { padding: 12px 14px; gap: 5px; }
+  body .lead-detail-grid { margin-top: 12px; }
+  body .lead-transfer, body .lead-view-status { margin: 8px 0; padding: 10px 14px; }
+  body .lead-work-item, body .lead-activity, body .lead-timeline-row { padding-top: 12px; padding-bottom: 12px; }
+  body .pricing-heading { padding: 16px 18px; }
+  body .pricing-datebar { padding: 0 18px 16px; }
+  body .pricing-clock { padding-bottom: 14px; }
+  body .product-pricing-scroll { margin: 0 18px 16px; }
+  body .product-form { gap: 14px 18px; padding: 18px; }
+  body .company-log-heading { padding: 12px 18px; }
+  body .size-selection, body .size-add-form { gap: 14px; padding: 0 18px 16px; }
+  body .dashboard-metric-page { padding: 18px; }
+  body .metric-back { margin-bottom: 14px; }
+  body .metric-heading { padding-bottom: 14px; }
+  body .metric-records { margin: 14px 0; gap: 8px; }
+  body .metric-record { padding: 12px 15px; }
+  body.dashboard-page .dash-main { padding: 0 28px 24px; }
+  body.dashboard-page .dash-heading { min-height: 40px; margin-bottom: 4px; }
+  body.dashboard-page .dash-summary-grid { gap: 10px; align-items: start; }
+  body.dashboard-page .dash-summary { height: auto; align-self: start; }
+  body.dashboard-page .dash-summary header { min-height: 54px; padding: 9px 12px; }
+  body.dashboard-page .dash-card-icon { width: 32px; height: 32px; border-radius: 8px; }
+  body.dashboard-page .dash-summary ul { padding: 7px 9px; gap: 1px; }
+  body.dashboard-page .dash-summary li { min-height: 29px; font-size: 12px; }
+  body.dashboard-page .dash-metric-link,
+  body.dashboard-page .dash-summary li:not(:has(a)) { min-height: 29px; padding: 3px 6px; }
+  body.dashboard-page .dash-planned { margin: 5px 15px 11px; padding-top: 3px; }
+  body.dashboard-page .dash-contacts { margin-top: 16px; }
+  body.dashboard-page .dash-contacts-toolbar { padding: 13px 16px; }
+  body.dashboard-page .dash-table th { padding: 10px 8px; }
+  body.dashboard-page .dash-table-bottom { padding: 10px 14px; }
+  body.dashboard-page .calendar-header { padding: 14px 18px; }
+  body.dashboard-page .calendar-filters { padding: 14px; gap: 12px; }
+  body.dashboard-page .calendar-main { padding: 12px; }
+  body.dashboard-page .calendar-agenda-day { padding: 10px 12px; margin-bottom: 8px; }
+}
+@media (max-width: 850px) {
+  body .content { padding: 20px 15px; }
+  body .panel { margin-bottom: 16px; }
+  body .lead-panel { padding: 14px; }
+  body .lead-detail-grid { margin-top: 12px; }
+  body.dashboard-page .dash-main { padding: 20px 15px; }
+  body.dashboard-page .dash-summary header, body.dashboard-page .dash-summary ul { padding: 12px; }
+}

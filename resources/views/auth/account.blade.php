@@ -1,0 +1,5 @@
+<x-app-layout title="My account">
+<div class="page-heading"><div><div class="eyebrow">ACCOUNT SECURITY</div><h1>My account<span>.</span></h1><p>{{ auth()->user()->name }} · {{ auth()->user()->email }} · {{ auth()->user()->role->name }}</p></div></div>
+<section class="panel"><div class="panel-heading"><div><h2>Change password</h2><p>Use at least 8 characters, including letters and numbers.</p></div></div><form method="POST" action="{{ route('account.password') }}" class="transporter-form">@csrf @method('PUT')
+<label>Current password<input name="current_password" type="password" required autocomplete="current-password"></label><label>New password<input name="password" type="password" minlength="8" maxlength="255" required autocomplete="new-password"></label><label>Confirm new password<input name="password_confirmation" type="password" minlength="8" maxlength="255" required autocomplete="new-password"></label><div class="form-actions"><span class="form-hint">Other sessions will be signed out.</span><button class="button primary">Update password</button></div></form></section>
+</x-app-layout>

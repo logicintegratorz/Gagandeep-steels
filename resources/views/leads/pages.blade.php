@@ -1,0 +1,1 @@
+<div class="lead-pages"><span>{{ $records->total() }} records · Page {{ $records->currentPage() }} of {{ $records->lastPage() }}</span>@if($records->previousPageUrl())<a href="{{ $records->previousPageUrl() }}">Previous</a>@endif @if($records->nextPageUrl())<a href="{{ $records->nextPageUrl() }}">Next</a>@endif</div>

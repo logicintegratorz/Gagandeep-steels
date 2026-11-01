@@ -1,0 +1,3 @@
+@php($unreadCount = \App\Models\CrmNotification::visibleTo(auth()->user())->whereNull('read_at')->count())
+<a class="notification-bell" href="{{ route('notifications.index') }}" aria-label="Notifications, {{ $unreadCount }} unread" data-notification-bell data-latest-message="{{ (int) \App\Models\CrmNotification::visibleTo(auth()->user())->whereNull('read_at')->whereNotNull('broadcast_id')->max('id') }}" data-count-url="{{ route('notifications.count') }}"><x-icon name="bell"/><span class="notification-count" @if(!$unreadCount) hidden @endif>{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span></a>
+<script src="{{ asset('js/notifications.js').'?v='.filemtime(public_path('js/notifications.js')) }}" defer></script>

@@ -1,0 +1,52 @@
+/* Emphasis stays inside the freight directory; forms and other pages are unchanged. */
+.directory{border-color:#d5e1f2;box-shadow:0 6px 24px #193a6710;border-radius:16px}
+.directory>.list-heading{background:#fff;border-radius:16px 16px 0 0;padding-top:26px;padding-bottom:24px}
+.directory #directory-title{border-left:4px solid #0848ad;padding-left:12px;color:#172e50;font-size:20px;letter-spacing:-.3px}
+.directory .list-heading p{padding-left:16px;color:#5c708d;margin-top:7px}
+.directory .total-rate-count{background:#eaf1ff;border-color:#d1dff6;color:#36567f;gap:9px;border-radius:10px;padding:10px 13px}
+.directory .total-rate-count strong{color:#0848ad;font-size:19px;font-variant-numeric:tabular-nums}
+.directory .directory-actions .button{background:#fff;border-color:#cfdaea;color:#29486d}
+.directory .directory-actions .button:hover{background:#edf4ff;border-color:#8fb2e3}
+.directory>.filters{padding-top:8px;padding-bottom:24px;row-gap:12px}
+.directory .filters>button{background:#0848ad;border-color:#0848ad;color:#fff;font-weight:600;box-shadow:0 2px 5px #0848ad18}
+.directory .filters>button:hover{background:#063b90}
+.directory thead{background:#edf3fc}
+.directory th{color:#3c5679;font-weight:700;border-top-color:#dbe5f3;border-bottom:1px solid #dbe5f3;letter-spacing:.8px}
+.directory td{padding-top:22px;padding-bottom:22px;border-top-color:#e6ecf5}
+.directory tbody tr:hover,.directory tbody tr:focus-within{background:#f4f8ff}
+.directory .route-cell strong{color:#173b6e;font-size:15px;font-weight:700}
+.directory .route-cell>div>span{color:#526984}
+.directory .route-marker{background:#eaf1ff;border-color:#d6e3f8;color:#0848ad;border-radius:10px;width:38px;height:40px}
+.directory .rate-price{display:inline-block;background:#eaf2ff;border:1px solid #d6e5fc;border-radius:9px;padding:8px 11px;color:#0848ad;font-size:16px;font-weight:700;letter-spacing:-.2px;font-variant-numeric:tabular-nums}
+.directory .carrier{background:#f7f9fc;border-color:#dce4ef;color:#395474;border-radius:7px;padding:7px 10px;font-weight:500}
+.directory .carrier svg{color:#617a99;flex-shrink:0}
+.directory .row-actions{gap:8px}
+.directory .row-actions .icon-button{border:1px solid #dde6f2;background:#fff;color:#476a99;border-radius:9px}
+.directory .row-actions .icon-button:hover,.directory .row-actions .icon-button:focus-visible{background:#eaf2ff;border-color:#a9c5eb;color:#0848ad}
+.directory .row-actions .delete-button:hover,.directory .row-actions .delete-button:focus-visible{background:#fff1f1;border-color:#e7baba;color:#ad3030}
+.directory .table-footer{background:#fafbfd;border-radius:0 0 16px 16px;color:#536b88;padding-top:18px;padding-bottom:18px}
+.directory .page-button:not(.disabled){background:#fff;color:#0848ad;border-color:#d2deef;border-radius:8px}
+@media(max-width:550px){.directory #directory-title{font-size:18px}.directory>.list-heading{padding:20px 16px}.directory .directory-actions{gap:10px}.directory .total-rate-count{padding:9px 11px}.directory .total-rate-count strong{font-size:17px}.directory .rate-price{font-size:15px;padding:7px 9px}.directory td{padding:18px 16px}.directory .list-heading p{padding-left:16px}}
+/* Compact, separate columns matching the requested directory reference. */
+.directory .rate-list-table{min-width:960px;font-size:14px}
+.directory .rate-list-table th{background:#edf2f9;color:#344d6b;text-transform:none;letter-spacing:.15px;font-size:13px;font-weight:600;padding:15px 16px}
+.directory .rate-list-table td{padding:12px 16px;vertical-align:middle;color:#465a73;font-weight:400;line-height:1.5}
+.directory .rate-list-table tbody tr:nth-child(even){background:#fafbfd}
+.directory .rate-list-table tbody tr:hover,.directory .rate-list-table tbody tr:focus-within{background:#f0f5fd}
+.directory .rate-list-table tbody tr:hover .serial-cell,.directory .rate-list-table tbody tr:focus-within .serial-cell{box-shadow:inset 3px 0 #0848ad;color:#0848ad}
+.directory .rate-list-table .serial-cell{width:64px;color:#677b95;font-variant-numeric:tabular-nums}
+.directory .rate-list-table .location-cell{min-width:140px;max-width:240px;overflow-wrap:anywhere;color:#253e5d;font-weight:600}
+.directory .rate-list-table .price-cell{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.directory .rate-list-table th:nth-child(4){text-align:right}
+.directory .rate-list-table .rate-price{padding:6px 10px;border-radius:8px;font-size:14px;line-height:1.4;background:#edf4ff;border:1px solid #d7e5fa;color:#0848ad;font-weight:700}
+.directory .rate-list-table .date-cell{color:#60738a;font-size:13px;font-variant-numeric:tabular-nums}
+.directory .rate-list-table .remarks-cell{min-width:180px}
+.directory .rate-list-table .row-actions{gap:4px}
+.directory .rate-list-table .row-actions .icon-button{background:#fff;border-color:#e0e7f0;color:#526b89;border-radius:8px}
+.directory .rate-list-table .row-actions .icon-button:hover{border-color:#c9d9ee;background:#e7effa}
+.directory .rate-list-table .row-actions .delete-button:hover,.directory .rate-list-table .row-actions .delete-button:focus-visible{color:#b12b36;border-color:#efc7cb;background:#fff1f2}
+.directory .filters input:focus-visible,.directory .filters select:focus-visible,.directory .filters .select-trigger:focus-visible{outline:2px solid #0848ad;outline-offset:2px;border-color:#8caee0}
+.directory .rate-list-table .icon-button:focus-visible{outline:2px solid #0848ad;outline-offset:2px}
+.directory .live-filter-status{font-size:12px;color:#526984;padding:0 16px 12px;overflow-wrap:anywhere}
+.directory .live-filter-status:empty{display:none}
+.directory[aria-busy="true"] .table-scroll{opacity:.6}

@@ -1,0 +1,15 @@
+<x-app-layout title="Products">
+<link rel="stylesheet" href="{{ asset('css/products.css').'?v='.filemtime(public_path('css/products.css')) }}">
+<form id="selected-product-rates" method="POST" action="{{ route('products.order') }}">@csrf
+@if($slot !== null)<input type="hidden" name="slot" value="{{ $slot }}">@endif
+@foreach(array_diff($directorySelected, $products->pluck('id')->all()) as $savedProductId)<input type="hidden" name="selected[]" value="{{ $savedProductId }}">@endforeach
+</form>
+<section class="panel">
+    <header class="pricing-heading"><h2>Product directory <span class="count">{{ $products->total() }}</span></h2><div class="pricing-actions">@if(auth()->user()->allows('products.view'))<a class="button secondary" href="{{ route('products.logs') }}">Global log sheet</a><button class="button secondary" type="submit" form="selected-product-rates">View rates</button>@endif </div></header>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Products"><table class="product-directory"><thead><tr><th>Item</th><th>Item ID</th><th>Category</th><th>Unit</th><th>Status</th><th>Actions</th></tr></thead><tbody>@forelse($products as $product)<tr><td><label class="product-pick">@if(auth()->user()->allows('products.view'))<input type="checkbox" name="selected[]" value="{{ $product->id }}" form="selected-product-rates" @checked(in_array($product->id, $directorySelected, true)) aria-label="Show {{ $product->name }} first in rates">@endif<strong>{{ $product->name }}</strong></label></td><td>{{ $product->item_code }}</td><td>{{ $product->category ?: '—' }}</td><td>{{ $product->unit }}</td><td>{{ $product->active ? 'Active' : 'Inactive' }}</td><td>@if(auth()->user()->allows('products.edit'))<a class="button secondary" href="{{ route('products.edit', $product) }}" aria-label="Edit {{ $product->name }}">Edit / update rate</a>@else — @endif</td></tr>@empty<tr><td colspan="6"><div class="empty"><h3>No products yet</h3><p>Add your first product to start maintaining company-wise prices.</p></div></td></tr>@endforelse</tbody></table></div>
+    <div class="table-footer"><span>{{ $products->firstItem() ?? 0 }}–{{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products</span><nav class="pagination" aria-label="Product pages">@if($products->previousPageUrl())<a class="page-button" href="{{ $products->previousPageUrl() }}" aria-label="Previous page">‹</a>@endif<span>Page {{ $products->currentPage() }} of {{ $products->lastPage() }}</span>@if($products->nextPageUrl())<a class="page-button" href="{{ $products->nextPageUrl() }}" aria-label="Next page">›</a>@endif</nav></div>
+</section>
+@if($slot !== null)
+<script>document.querySelectorAll('input[type="checkbox"][name="selected[]"]').forEach(box=>box.addEventListener('change',()=>{if(box.checked)document.querySelectorAll('input[type="checkbox"][name="selected[]"]').forEach(other=>{if(other!==box)other.checked=false;});document.querySelectorAll('#selected-product-rates input[name="selected[]"]').forEach(input=>input.remove());}));</script>
+@endif
+</x-app-layout>

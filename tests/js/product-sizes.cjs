@@ -1,0 +1,27 @@
+const assert = require('node:assert/strict');
+const {addRates, relatedSize} = require('../../public/js/product-sizes.js');
+assert.equal(addRates('50000','2000'),'52000');
+assert.equal(addRates('0.1','0.2'),'0.3');
+assert.equal(addRates('100.000','-20.5'),'79.5');
+assert.equal(addRates('0','0'),'0');
+assert.equal(addRates('10','-10'),'0');
+assert.equal(addRates('On request','10'),null);
+assert.equal(addRates('500 + freight','10'),null);
+assert.equal(addRates('10',''),null);
+assert.equal(addRates('999999999999999999','1'),'1000000000000000000');
+console.log('9 size-price calculation checks passed');
+assert.equal(relatedSize('25 × 5','25 × 3'),true);
+assert.equal(relatedSize('25 x 5','25X6'),true);
+assert.equal(relatedSize('25*5','25 × 6'),true);
+assert.equal(relatedSize('25 × 5','250 × 5'),false);
+assert.equal(relatedSize('25 × 5','125 × 5'),false);
+assert.equal(relatedSize('25 × 5','30 × 5'),false);
+assert.equal(relatedSize('','25 × 5'),false);
+console.log('7 related-size matching checks passed');
+
+const {normalizeSizeSearch}=require('../../public/js/product-sizes.js');
+assert.equal(normalizeSizeSearch('25a5'),'25X5');
+assert.equal(normalizeSizeSearch('25@5'),'25X5');
+assert.equal(normalizeSizeSearch('25 x 5'),'25X5');
+assert.equal(normalizeSizeSearch('25'),'25');
+console.log('4 size input normalization checks passed');

@@ -1,0 +1,24 @@
+.theme-switch{display:grid;grid-template-rows:repeat(2,29px);width:36px;overflow:hidden;flex-shrink:0;border:1px solid var(--border);border-radius:9px;background:#fff}
+.theme-switch button{display:grid;place-items:center;width:100%;padding:0;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.theme-switch button+button{border-top:1px solid var(--border)}
+.theme-switch button:hover,.theme-switch button[aria-pressed=true]{background:#eaf1fc;color:var(--primary)}
+.theme-switch button:focus-visible{position:relative;z-index:1;outline:2px solid var(--primary);outline-offset:-2px}
+
+html[data-appearance=dark]{--nav:#09162b;--primary:#78aaff;--ink:#edf3ff;--muted:#aebdd3;--border:#34465f;--surface:#101a2b;color-scheme:dark}
+html[data-appearance=dark] body{background:var(--surface);color:var(--ink)}
+html[data-appearance=dark] .topbar,html[data-appearance=dark] .dash-header,html[data-appearance=dark] .panel,html[data-appearance=dark] .stat,html[data-appearance=dark] .dash-summary,html[data-appearance=dark] .dash-contacts,html[data-appearance=dark] .dash-account-menu,html[data-appearance=dark] .theme-switch,html[data-appearance=dark] dialog,html[data-appearance=dark] .toast{background:#17243a!important;color:var(--ink)!important;border-color:var(--border)!important}
+html[data-appearance=dark] input,html[data-appearance=dark] select,html[data-appearance=dark] textarea,html[data-appearance=dark] .secondary,html[data-appearance=dark] .button.secondary,html[data-appearance=dark] .dash-search,html[data-appearance=dark] .dash-contact-actions a,html[data-appearance=dark] .dash-shortcuts button,html[data-appearance=dark] .dash-account-menu,html[data-appearance=dark] .notification-bell{background:#1c2c46!important;color:var(--ink)!important;border-color:var(--border)!important}
+html[data-appearance=dark] input::placeholder,html[data-appearance=dark] textarea::placeholder{color:#9bacc5}
+html[data-appearance=dark] thead,html[data-appearance=dark] th,html[data-appearance=dark] .dash-table th,html[data-appearance=dark] .dash-summary header,html[data-appearance=dark] .product-form-heading,html[data-appearance=dark] .company-log-heading,html[data-appearance=dark] .dash-announcement,html[data-appearance=dark] .notification-item.is-unread{background:#223450!important;color:var(--ink)!important;border-color:var(--border)!important}
+html[data-appearance=dark] td,html[data-appearance=dark] th,html[data-appearance=dark] .dash-table .dash-contact-row td,html[data-appearance=dark] .dash-table-bottom{border-color:var(--border)!important}
+html[data-appearance=dark] tbody tr:hover{background:#20324d!important}
+html[data-appearance=dark] h1,html[data-appearance=dark] h2,html[data-appearance=dark] h3,html[data-appearance=dark] strong,html[data-appearance=dark] .dash-heading h1,html[data-appearance=dark] .dash-summary h2,html[data-appearance=dark] .dash-contacts-title h2,html[data-appearance=dark] .dash-table th,html[data-appearance=dark] .topbar strong{color:var(--ink)!important}
+html[data-appearance=dark] p,html[data-appearance=dark] small,html[data-appearance=dark] label,html[data-appearance=dark] .dash-summary li,html[data-appearance=dark] .dash-date,html[data-appearance=dark] .dash-table-bottom{color:var(--muted)!important}
+html[data-appearance=dark] a:not(.primary):not(.nav-active),html[data-appearance=dark] .text-link{color:#9dc4ff}
+html[data-appearance=dark] .primary,html[data-appearance=dark] .nav-active,html[data-appearance=dark] .dash-add{background:#245db2!important;color:#fff!important;border-color:#3d75c7!important}
+html[data-appearance=dark] .primary *,html[data-appearance=dark] .nav-active *{color:#fff!important}
+html[data-appearance=dark] .theme-switch button{color:var(--muted);border-color:var(--border)}
+html[data-appearance=dark] .theme-switch button:hover,html[data-appearance=dark] .theme-switch button[aria-pressed=true]{background:#294a79;color:#fff}
+html[data-appearance=dark] .theme-toggle{background:#1c2c46!important;color:#fff!important;border-color:var(--border)!important}
+html[data-appearance=dark] .product-price-value,html[data-appearance=dark] .lead-column,html[data-appearance=dark] .lead-card,html[data-appearance=dark] .automation-card,html[data-appearance=dark] .list-message,html[data-appearance=dark] .list-send-bar,html[data-appearance=dark] .list-send-all,html[data-appearance=dark] .lead-empty-state{background:#1c2c46!important;color:var(--ink)!important;border-color:var(--border)!important}
+html[data-appearance=dark] .notification-count,html[data-appearance=dark] .dash-count{background:#294a79;color:#fff}
