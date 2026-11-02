@@ -50,12 +50,12 @@ final class NotificationBroadcastTest extends TestCase
         $this->assertEquals([$operator->id],$second->deliveries()->pluck('user_id')->all());
         $this->assertDatabaseMissing('crm_notifications',['broadcast_id'=>$second->id,'user_id'=>$admin->id]);
     }
-    public function test_notification_title_is_optional_and_uses_a_clear_default(): void
+    public function test_notification_title_is_optional_and_stays_empty(): void
     {
         $this->signIn();
         $this->post(route('broadcasts.store'),$this->message(['title'=>'   ']))->assertSessionHasNoErrors();
-        $this->assertDatabaseHas('notification_broadcasts',['title'=>'Notification']);
-        $this->assertDatabaseHas('crm_notifications',['title'=>'Notification']);
+        $this->assertDatabaseHas('notification_broadcasts',['title'=>'']);
+        $this->assertDatabaseHas('crm_notifications',['title'=>'']);
     }
     public function test_invalid_or_empty_audience_does_not_send(): void
     {

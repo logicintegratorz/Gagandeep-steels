@@ -35,7 +35,7 @@ final class NotificationBroadcastController
             'user_ids'=>['exclude_unless:audience,users','required','array','min:1','max:500'],
             'user_ids.*'=>['integer','distinct','exists:users,id'],
         ]);
-        $data['title'] = filled($data['title'] ?? null) ? $data['title'] : 'Notification';
+        $data['title'] = $data['title'] ?? '';
         if ($existing = NotificationBroadcast::where('submission_key',$data['submission_key'])->first()) return $this->alreadySent($request,$existing);
         try {
             $count = DB::transaction(function () use ($request,$data) {
@@ -86,7 +86,7 @@ final class NotificationBroadcastController
         $this->requireAdministrator($request);
         foreach (['title','message'] as $field) if (is_string($request->input($field))) $request->merge([$field => trim($request->input($field))]);
         $data = $request->validate(['title'=>['nullable','string','max:120'], 'message'=>['required','string','max:2000']]);
-        $data['title'] = filled($data['title'] ?? null) ? $data['title'] : 'Notification';
+        $data['title'] = $data['title'] ?? '';
         DB::transaction(function () use ($broadcast, $data) {
             $broadcast->update($data);
             CrmNotification::where('broadcast_id', $broadcast->id)->update([
