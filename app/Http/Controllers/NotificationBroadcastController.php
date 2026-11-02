@@ -30,11 +30,16 @@ final class NotificationBroadcastController
         $data = $request->validate([
             'submission_key'=>['required','uuid'], 'title'=>['nullable','string','max:120'], 'message'=>['required','string','max:2000'],
             'audience'=>['required',Rule::in(['all','roles','users'])],
+            'recipient_id'=>['nullable','integer','exists:users,id'],
             'role_ids'=>['exclude_unless:audience,roles','required','array','min:1','max:500'],
             'role_ids.*'=>['integer','distinct','exists:roles,id'],
             'user_ids'=>['exclude_unless:audience,users','required','array','min:1','max:500'],
             'user_ids.*'=>['integer','distinct','exists:users,id'],
         ]);
+        if (!empty($data['recipient_id'])) {
+            $data['audience'] = 'users';
+            $data['user_ids'] = [(int) $data['recipient_id']];
+        }
         $data['title'] = $data['title'] ?? '';
         if ($existing = NotificationBroadcast::where('submission_key',$data['submission_key'])->first()) return $this->alreadySent($request,$existing);
         try {

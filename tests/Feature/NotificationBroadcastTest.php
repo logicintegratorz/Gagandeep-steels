@@ -50,6 +50,18 @@ final class NotificationBroadcastTest extends TestCase
         $this->assertEquals([$operator->id],$second->deliveries()->pluck('user_id')->all());
         $this->assertDatabaseMissing('crm_notifications',['broadcast_id'=>$second->id,'user_id'=>$admin->id]);
     }
+    public function test_admin_can_send_a_dashboard_message_to_one_selected_active_user(): void
+    {
+        $this->signIn();
+        $viewer = $this->user('dashboard-recipient@example.test');
+
+        $this->post(route('broadcasts.store'), $this->message(['recipient_id'=>$viewer->id]))
+            ->assertSessionHasNoErrors();
+
+        $broadcast = NotificationBroadcast::firstOrFail();
+        $this->assertSame('users', $broadcast->audience);
+        $this->assertSame([$viewer->id], $broadcast->deliveries()->pluck('user_id')->all());
+    }
     public function test_notification_title_is_optional_and_stays_empty(): void
     {
         $this->signIn();

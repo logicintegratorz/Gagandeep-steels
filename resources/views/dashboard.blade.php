@@ -72,6 +72,7 @@
 @php($announcements = \App\Models\CrmNotification::visibleTo(auth()->user())->whereNotNull('broadcast_id')->whereDate('created_at', now('Asia/Kolkata')->toDateString())->with('broadcast')->orderByDesc('id')->limit(10)->get())
 @php($dashboardMessages = \App\Models\CrmNotification::visibleTo(auth()->user())->with('broadcast')->orderByDesc('id')->limit(30)->get())
 @php($dashboardBroadcasts = auth()->user()->isAdmin() ? \App\Models\NotificationBroadcast::with('sender')->orderByDesc('id')->limit(15)->get() : collect())
+@php($messageRecipients = auth()->user()->isAdmin() ? \App\Models\User::where('active', true)->orderBy('name')->get(['id','name']) : collect())
 <div class="dash-announcement"><button class="icon-button" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar"><x-icon name="menu"/></button><span class="announcement-label"><x-icon name="bell" size="15"/> Hi, {{ auth()->user()->name }}</span>
 <div class="announcement-ticker" tabindex="0" aria-label="Admin messages">
 @if($announcements->isNotEmpty())
@@ -85,10 +86,9 @@
     <header><div><p class="dashboard-messages-eyebrow">CRM INBOX</p><h2 id="dashboard-messages-title">Messages</h2></div><button type="button" class="icon-button" data-dashboard-messages-close aria-label="Close messages">×</button></header>
     @if(auth()->user()->isAdmin())
       <div class="dashboard-message-composer">
-        <form method="POST" action="{{ route('broadcasts.store') }}">@csrf<input type="hidden" name="submission_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="audience" value="all"><label>Title (optional)<input name="title" maxlength="120" placeholder="Message title"></label><label>Message *<textarea name="message" rows="3" maxlength="2000" required placeholder="Write a clear message for all active users"></textarea></label><div><button class="button primary">Send to all active users</button></div></form>
+        <form method="POST" action="{{ route('broadcasts.store') }}">@csrf<input type="hidden" name="submission_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="audience" value="all"><label>Title (optional)<input name="title" maxlength="120" placeholder="Message title"></label><label>Message *<textarea name="message" rows="3" maxlength="2000" required placeholder="Write a clear message"></textarea></label><div class="dashboard-message-send-row"><label>Send to<select name="recipient_id"><option value="">All active users</option>@foreach($messageRecipients as $recipient)<option value="{{ $recipient->id }}">{{ $recipient->name }}</option>@endforeach</select></label><button class="button primary">Send message</button></div></form>
       </div>
     @endif
-    <div class="dashboard-messages-actions"><form method="POST" action="{{ route('notifications.read-all') }}">@csrf<button class="button secondary" @disabled($dashboardMessages->whereNull('read_at')->isEmpty())>Mark all as read</button></form></div>
     <div class="dashboard-messages-list">
       @forelse($dashboardMessages as $message)
         <article class="dashboard-message {{ $message->read_at ? 'is-read' : 'is-unread' }}">
