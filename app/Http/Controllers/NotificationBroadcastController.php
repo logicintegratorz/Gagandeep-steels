@@ -109,4 +109,25 @@ final class NotificationBroadcastController
         });
         return back()->with('success', 'Sent message and its delivery records were deleted.');
     }
+    public function resend(Request $request, NotificationBroadcast $broadcast)
+    {
+        $this->requireAdministrator($request);
+        $ids = User::where('active', true)->whereIn('id', $broadcast->deliveries()->pluck('user_id'))->orderBy('id')->pluck('id');
+        if ($ids->isEmpty()) return back()->withErrors(['message'=>'This message has no active original recipients to resend to.']);
+
+        DB::transaction(function () use ($request, $broadcast, $ids) {
+            $resent = NotificationBroadcast::create([
+                'sender_id'=>$request->user()->id, 'submission_key'=>(string) \Illuminate\Support\Str::uuid(),
+                'title'=>$broadcast->title, 'message'=>$broadcast->message, 'audience'=>'users', 'recipient_count'=>$ids->count(),
+            ]);
+            foreach ($ids->chunk(300) as $chunk) {
+                CrmNotification::insert($chunk->map(fn($id)=>[
+                    'user_id'=>$id, 'broadcast_id'=>$resent->id, 'title'=>$resent->title,
+                    'message'=>'From '.$request->user()->name.': '.$resent->message, 'permission'=>null,
+                    'read_at'=>null, 'created_at'=>now(), 'updated_at'=>now(),
+                ])->all());
+            }
+        });
+        return back()->with('success', 'Message resent to '.$ids->count().' active '.($ids->count() === 1 ? 'user.' : 'users.'));
+    }
 }

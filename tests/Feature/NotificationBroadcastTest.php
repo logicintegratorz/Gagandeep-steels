@@ -146,4 +146,18 @@ final class NotificationBroadcastTest extends TestCase
         $this->assertDatabaseMissing('notification_broadcasts', ['id'=>$broadcast->id]);
         $this->assertDatabaseMissing('crm_notifications', ['broadcast_id'=>$broadcast->id]);
     }
+    public function test_admin_can_resend_an_old_message_to_its_active_original_recipients(): void
+    {
+        $this->signIn();
+        $viewer = $this->user('resend-recipient@example.test');
+        $this->post(route('broadcasts.store'), $this->message(['audience'=>'users', 'user_ids'=>[$viewer->id]]))->assertSessionHasNoErrors();
+        $original = NotificationBroadcast::firstOrFail();
+
+        $this->post(route('broadcasts.resend', $original))->assertSessionHas('success');
+
+        $resent = NotificationBroadcast::orderByDesc('id')->firstOrFail();
+        $this->assertNotSame($original->id, $resent->id);
+        $this->assertSame('users', $resent->audience);
+        $this->assertSame([$viewer->id], $resent->deliveries()->pluck('user_id')->all());
+    }
 }

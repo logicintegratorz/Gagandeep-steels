@@ -121,6 +121,7 @@ Route::middleware(['auth', 'session.limits', 'active.lead.call', 'crm.notificati
     Route::post('/notifications/send', [\App\Http\Controllers\NotificationBroadcastController::class, 'store'])->middleware('throttle:10,1')->name('broadcasts.store');
     Route::get('/notifications/sent', [\App\Http\Controllers\NotificationBroadcastController::class, 'index'])->name('broadcasts.index');
     Route::post('/notifications/sent/{broadcast}/recall', [\App\Http\Controllers\NotificationBroadcastController::class, 'recall'])->name('broadcasts.recall');
+    Route::post('/notifications/sent/{broadcast}/resend', [\App\Http\Controllers\NotificationBroadcastController::class, 'resend'])->middleware('throttle:10,1')->name('broadcasts.resend');
     Route::put('/notifications/sent/{broadcast}', [\App\Http\Controllers\NotificationBroadcastController::class, 'update'])->name('broadcasts.update');
     Route::delete('/notifications/sent/{broadcast}', [\App\Http\Controllers\NotificationBroadcastController::class, 'destroy'])->name('broadcasts.destroy');
     Route::post('/notifications/sound', [\App\Http\Controllers\NotificationController::class, 'sound'])->name('notifications.sound');
