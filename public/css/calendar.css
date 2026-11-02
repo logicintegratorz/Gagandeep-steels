@@ -10,6 +10,7 @@ html[data-appearance=dark] .dash-calendar,html[data-appearance=dark] .calendar-d
 .calendar-add-dialog{max-width:600px;max-height:90dvh;overflow:auto}.calendar-add-dialog form{display:grid;grid-template-columns:1fr 1fr;gap:13px}.calendar-add-dialog h2,.calendar-add-dialog p,.calendar-add-dialog label:first-of-type,.calendar-add-dialog label:nth-of-type(2),.calendar-add-dialog label:has(textarea){grid-column:1/-1}.calendar-add-dialog label{display:grid;gap:5px;font-size:13px;font-weight:600}.calendar-add-dialog textarea{min-height:70px;padding:10px;border:1px solid var(--border);border-radius:6px;font:inherit}.calendar-add-dialog form>.button{grid-column:1/-1;justify-self:start}
 @media(max-width:580px){.calendar-add-dialog form{grid-template-columns:1fr}.calendar-add-dialog label{grid-column:1/-1}}
 .calendar-change,.calendar-dot.calendar-change{--event:#667085;--event-bg:#eef0f4}
+.calendar-loading,.calendar-dot.calendar-loading{--event:#0f6fba;--event-bg:#e3f1ff}.calendar-payment,.calendar-dot.calendar-payment{--event:#16794a;--event-bg:#e2f7e9}
 .calendar-view,.calendar-dot.calendar-view{--event:#4273a8;--event-bg:#e7f0fb}
 .calendar-assignment,.calendar-dot.calendar-assignment{--event:#b94d29;--event-bg:#fff0e8}
 .calendar-filters legend .calendar-select-all{display:inline-flex;align-items:center;gap:8px;margin:0;color:var(--ink);font-size:12px;font-weight:700;cursor:pointer}
