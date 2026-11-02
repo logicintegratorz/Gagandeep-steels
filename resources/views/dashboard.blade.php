@@ -72,11 +72,11 @@
 @php($announcements = \App\Models\CrmNotification::visibleTo(auth()->user())->whereNotNull('broadcast_id')->whereDate('created_at', now('Asia/Kolkata')->toDateString())->with('broadcast')->orderByDesc('id')->limit(10)->get())
 @php($dashboardMessages = \App\Models\CrmNotification::visibleTo(auth()->user())->orderByDesc('id')->limit(30)->get())
 @php($dashboardBroadcasts = auth()->user()->isAdmin() ? \App\Models\NotificationBroadcast::with('sender')->orderByDesc('id')->limit(15)->get() : collect())
-<div class="dash-announcement"><button class="icon-button" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar"><x-icon name="menu"/></button><span class="announcement-label"><x-icon name="bell" size="15"/> {{ $announcements->first()?->title ?? 'Hi, '.auth()->user()->name }}</span>
+<div class="dash-announcement"><button class="icon-button" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar"><x-icon name="menu"/></button><span class="announcement-label"><x-icon name="bell" size="15"/> Hi, {{ auth()->user()->name }}</span>
 <div class="announcement-ticker" tabindex="0" aria-label="Admin messages">
 @if($announcements->isNotEmpty())
 <div class="announcement-track" style="--ticker-duration: {{ max(25, $announcements->sum(fn($notice) => mb_strlen($notice->title.' '.$notice->broadcast->message)) / 7) }}s">
-@foreach($announcements as $notice)<span class="announcement-message"><strong>{{ $notice->title }}</strong> — {{ $notice->broadcast->message }}</span>@endforeach
+@foreach($announcements as $notice)<span class="announcement-message">@if(strcasecmp($notice->title, 'Notification') !== 0)<strong>{{ $notice->title }}</strong> — @endif{{ $notice->broadcast->message }}</span>@endforeach
 </div>
 @else<span>Welcome to Gagandeep Steels. Your workday, all in one place.</span>@endif
 </div><button type="button" class="dash-view-messages" data-dashboard-messages-open aria-haspopup="dialog">View messages <span aria-hidden="true">↗</span></button></div>
