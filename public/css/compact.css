@@ -42,7 +42,7 @@
   body.dashboard-page .dash-heading { min-height: 40px; margin-bottom: 4px; }
   body.dashboard-page .dash-summary-grid { gap: 10px; align-items: start; }
   body.dashboard-page .dash-summary { height: auto; align-self: start; }
-  body.dashboard-page .dash-summary header { min-height: 54px; padding: 9px 12px; }
+  body.dashboard-page .dash-summary header { min-height: 46px; padding: 7px 12px; }
   body.dashboard-page .dash-card-icon { width: 32px; height: 32px; border-radius: 8px; }
   body.dashboard-page .dash-summary ul { padding: 7px 9px; gap: 1px; }
   body.dashboard-page .dash-summary li { min-height: 29px; font-size: 12px; }
