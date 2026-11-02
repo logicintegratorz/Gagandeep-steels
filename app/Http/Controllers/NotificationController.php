@@ -45,4 +45,18 @@ final class NotificationController
         $entry->update(['dismissed_at' => now(), 'read_at' => $entry->read_at ?? now()]);
         return back()->with('success', 'Notification dismissed.');
     }
+    public function update(Request $request, int $notification)
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        $entry = CrmNotification::findOrFail($notification);
+        $data = $request->validate(['title'=>['nullable','string','max:120'], 'message'=>['required','string','max:2000']]);
+        $entry->update(['title'=>trim((string) ($data['title'] ?? '')), 'message'=>trim($data['message'])]);
+        return back()->with('success', 'Notification record updated.');
+    }
+    public function deleteRecord(Request $request, int $notification)
+    {
+        abort_unless($request->user()->isAdmin(), 403);
+        CrmNotification::findOrFail($notification)->delete();
+        return back()->with('success', 'Notification record deleted.');
+    }
 }

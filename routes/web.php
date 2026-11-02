@@ -128,6 +128,8 @@ Route::middleware(['auth', 'session.limits', 'active.lead.call', 'crm.notificati
     Route::get('/notifications/count', [\App\Http\Controllers\NotificationController::class, 'count'])->name('notifications.count');
     Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'readAll'])->name('notifications.read-all');
     Route::patch('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'read'])->whereNumber('notification')->name('notifications.read');
+    Route::put('/notifications/{notification}', [\App\Http\Controllers\NotificationController::class, 'update'])->whereNumber('notification')->name('notifications.update');
+    Route::delete('/notifications/{notification}/record', [\App\Http\Controllers\NotificationController::class, 'deleteRecord'])->whereNumber('notification')->name('notifications.record.destroy');
     Route::delete('/notifications/{notification}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->whereNumber('notification')->name('notifications.destroy');
     Route::get('/', [AuthController::class, 'home'])->name('home');
     Route::get('/dashboard/calendar', [\App\Http\Controllers\DashboardCalendarController::class, 'index'])->name('dashboard.calendar');
