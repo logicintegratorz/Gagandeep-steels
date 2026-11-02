@@ -5,7 +5,15 @@
 
   opener.addEventListener('click', () => dialog.showModal());
   dialog.querySelectorAll('[data-dashboard-messages-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
-  dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+  dialog.addEventListener('click', event => {
+    if (event.target === dialog) {
+      dialog.close();
+      return;
+    }
+    dialog.querySelectorAll('details[open]').forEach(panel => {
+      if (!panel.contains(event.target)) panel.removeAttribute('open');
+    });
+  });
 
   const recipientForm = dialog.querySelector('[data-message-recipient-form]');
   if (!recipientForm) return;
