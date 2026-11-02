@@ -20,7 +20,7 @@
     summary.textContent = allUsers.checked ? 'All active users' : `${selected.length} user${selected.length === 1 ? '' : 's'} selected`;
   };
   allUsers.addEventListener('change', () => {
-    if (!allUsers.checked && !recipients.some(option => option.checked)) allUsers.checked = true;
+    recipients.forEach(input => { input.checked = allUsers.checked; });
     syncRecipients();
   });
   recipients.forEach(input => input.addEventListener('change', () => {
