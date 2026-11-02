@@ -31,7 +31,7 @@ final class NotificationBroadcastTest extends TestCase
         $admin=$this->signIn(); $viewer=$this->user('viewer@example.test'); $inactive=$this->user('inactive@example.test','Viewer',false);
         $this->get(route('broadcasts.compose'))->assertOk()->assertSee('Compose message');
         $data=$this->message();
-        $this->post(route('broadcasts.store'),$data)->assertRedirect(route('broadcasts.index'))->assertSessionHasNoErrors();
+        $this->post(route('broadcasts.store'),$data)->assertRedirect(route('broadcasts.compose'))->assertSessionHasNoErrors();
         $broadcast=NotificationBroadcast::firstOrFail();
         $this->assertSame(2,$broadcast->recipient_count);
         foreach([$admin,$viewer] as $recipient) $this->assertDatabaseHas('crm_notifications',['user_id'=>$recipient->id,'broadcast_id'=>$broadcast->id]);
@@ -66,7 +66,7 @@ final class NotificationBroadcastTest extends TestCase
         $this->post(route('broadcasts.store'),$this->message(['message'=>str_repeat('a',2001)]))->assertSessionHasErrors('message');
         $this->assertDatabaseCount('notification_broadcasts',0);
     }
-    public function test_admin_can_delegate_notification_permissions_but_delegate_cannot_regrant_them(): void
+    public function test_only_administrator_can_send_or_manage_messages(): void
     {
         $admin=$this->signIn();
         $this->post(route('roles.store'),['name'=>'Communication team','permissions'=>['notifications.send','notifications.recall','roles.create','roles.edit','users.create','users.assign_roles']])->assertSessionHasNoErrors();
@@ -74,8 +74,9 @@ final class NotificationBroadcastTest extends TestCase
         $this->assertContains('notifications.view',$role->permissions);
         $delegate=User::create(['name'=>'Communicator','email'=>'communicator@example.test','password'=>'Pass1234','active'=>true,'role_id'=>$role->id]);
         $this->signIn($delegate);
-        $this->get(route('broadcasts.compose'))->assertOk();
-        $this->post(route('broadcasts.store'),$this->message())->assertSessionHasNoErrors();
+        $this->get(route('broadcasts.compose'))->assertForbidden();
+        $this->post(route('broadcasts.store'),$this->message())->assertForbidden();
+        $this->get(route('broadcasts.index'))->assertForbidden();
         $this->post(route('roles.store'),['name'=>'Unauthorized grant','permissions'=>['notifications.send']])->assertForbidden();
         $this->assertDatabaseMissing('roles',['name'=>'Unauthorized grant']);
         $this->post(route('users.store'),['name'=>'Unauthorized recipient','email'=>'no-grant@example.test','password'=>'Pass1234','password_confirmation'=>'Pass1234','role_id'=>$role->id,'active'=>1])->assertForbidden();
@@ -88,7 +89,7 @@ final class NotificationBroadcastTest extends TestCase
         $user=User::create(['name'=>'Announcements user','email'=>'announcements@example.test','password'=>'Pass1234','active'=>true,'role_id'=>$role->id]);
         $this->signIn($user);
         $this->get(route('home'))->assertOk()->assertViewIs('dashboard');
-        $this->get(route('notifications.index'))->assertOk()->assertSee('Current Notification')->assertSee('Send notification');
+        $this->get(route('notifications.index'))->assertOk()->assertSee('Current Notification')->assertDontSee('Send notification');
         $this->get(route('rates.index'))->assertForbidden();
     }
     public function test_delegates_cannot_view_or_recall_others_broadcasts_and_admin_can_recall(): void
@@ -98,7 +99,7 @@ final class NotificationBroadcastTest extends TestCase
         $role=Role::create(['name'=>'Communication','permissions'=>['notifications.view','notifications.send','notifications.recall']]);
         $delegate=User::create(['name'=>'Delegate','email'=>'delegate@example.test','password'=>'Pass1234','active'=>true,'role_id'=>$role->id]);
         $this->signIn($delegate);
-        $this->get(route('broadcasts.index'))->assertOk()->assertDontSee('Administrator message');
+        $this->get(route('broadcasts.index'))->assertForbidden();
         $this->post(route('broadcasts.recall',$broadcast))->assertForbidden();
         $this->signIn($admin);
         $this->post(route('broadcasts.recall',$broadcast))->assertSessionHas('success');
@@ -119,5 +120,18 @@ final class NotificationBroadcastTest extends TestCase
         $this->signIn($admin);
         $response=$this->get(route('broadcasts.index'))->assertOk();
         $this->assertSame(1,$response->viewData('broadcasts')->first()->read_count);
+    }
+    public function test_admin_can_edit_and_delete_sent_message_records(): void
+    {
+        $admin = $this->signIn();
+        $viewer = $this->user('viewer@example.test');
+        $this->post(route('broadcasts.store'), $this->message(['audience'=>'users', 'user_ids'=>[$viewer->id]]))->assertSessionHasNoErrors();
+        $broadcast = NotificationBroadcast::firstOrFail();
+        $this->put(route('broadcasts.update', $broadcast), ['title'=>'Updated dispatch', 'message'=>'Updated delivery details.'])->assertSessionHas('success');
+        $this->assertDatabaseHas('notification_broadcasts', ['id'=>$broadcast->id, 'title'=>'Updated dispatch', 'message'=>'Updated delivery details.']);
+        $this->assertDatabaseHas('crm_notifications', ['broadcast_id'=>$broadcast->id, 'title'=>'Updated dispatch']);
+        $this->delete(route('broadcasts.destroy', $broadcast))->assertSessionHas('success');
+        $this->assertDatabaseMissing('notification_broadcasts', ['id'=>$broadcast->id]);
+        $this->assertDatabaseMissing('crm_notifications', ['broadcast_id'=>$broadcast->id]);
     }
 }

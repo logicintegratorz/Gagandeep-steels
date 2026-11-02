@@ -71,6 +71,7 @@
 </header>
 @php($announcements = \App\Models\CrmNotification::visibleTo(auth()->user())->whereNotNull('broadcast_id')->whereDate('created_at', now('Asia/Kolkata')->toDateString())->with('broadcast')->orderByDesc('id')->limit(10)->get())
 @php($dashboardMessages = \App\Models\CrmNotification::visibleTo(auth()->user())->orderByDesc('id')->limit(30)->get())
+@php($dashboardBroadcasts = auth()->user()->isAdmin() ? \App\Models\NotificationBroadcast::with('sender')->orderByDesc('id')->limit(15)->get() : collect())
 <div class="dash-announcement"><button class="icon-button" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar"><x-icon name="menu"/></button><span class="announcement-label"><x-icon name="bell" size="15"/> {{ $announcements->first()?->title ?? 'Hi, '.auth()->user()->name }}</span>
 <div class="announcement-ticker" tabindex="0" aria-label="Admin messages">
 @if($announcements->isNotEmpty())
@@ -82,6 +83,11 @@
 <dialog class="dashboard-messages-dialog" data-dashboard-messages aria-labelledby="dashboard-messages-title">
   <section class="dashboard-messages-card">
     <header><div><p class="dashboard-messages-eyebrow">CRM INBOX</p><h2 id="dashboard-messages-title">Messages</h2><p>{{ $dashboardMessages->whereNull('read_at')->count() }} unread · latest 30 records</p></div><button type="button" class="icon-button" data-dashboard-messages-close aria-label="Close messages">×</button></header>
+    @if(auth()->user()->isAdmin())
+      <details class="dashboard-message-composer"><summary class="button primary">+ Send message</summary>
+        <form method="POST" action="{{ route('broadcasts.store') }}">@csrf<input type="hidden" name="submission_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="audience" value="all"><label>Title (optional)<input name="title" maxlength="120" placeholder="Message title"></label><label>Message *<textarea name="message" rows="3" maxlength="2000" required placeholder="Write a clear message for all active users"></textarea></label><div><button class="button primary">Send to all active users</button></div></form>
+      </details>
+    @endif
     <div class="dashboard-messages-actions"><form method="POST" action="{{ route('notifications.read-all') }}">@csrf<button class="button secondary" @disabled($dashboardMessages->whereNull('read_at')->isEmpty())>Mark all as read</button></form></div>
     <div class="dashboard-messages-list">
       @forelse($dashboardMessages as $message)
@@ -93,6 +99,13 @@
         <div class="dashboard-messages-empty"><strong>No messages yet</strong><p>New alerts, assignments and admin messages will appear here.</p></div>
       @endforelse
     </div>
+    @if(auth()->user()->isAdmin())
+      <section class="dashboard-sent-messages"><h3>Sent messages</h3>
+        @forelse($dashboardBroadcasts as $broadcast)
+          <article><div><strong>{{ $broadcast->title }}</strong><p>{{ $broadcast->message }}</p><small>{{ $broadcast->recipient_count }} recipients · {{ $broadcast->created_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }} IST</small></div><details><summary class="button secondary">Edit</summary><form method="POST" action="{{ route('broadcasts.update', $broadcast) }}">@csrf @method('PUT')<label>Title<input name="title" maxlength="120" value="{{ $broadcast->title }}"></label><label>Message<textarea name="message" rows="3" maxlength="2000" required>{{ $broadcast->message }}</textarea></label><button class="button primary">Save changes</button></form></details><form method="POST" action="{{ route('broadcasts.destroy', $broadcast) }}" onsubmit="return confirm('Delete this sent message for every recipient?')">@csrf @method('DELETE')<button class="button secondary">Delete</button></form></article>
+        @empty <p class="dashboard-sent-empty">No sent messages yet.</p>@endforelse
+      </section>
+    @endif
   </section>
 </dialog>
 </div>

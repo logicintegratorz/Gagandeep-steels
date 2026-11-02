@@ -10,8 +10,14 @@ use Illuminate\Database\UniqueConstraintViolationException;
 
 final class NotificationBroadcastController
 {
-    public function compose()
+    private function requireAdministrator(Request $request): void
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+    }
+
+    public function compose(Request $request)
+    {
+        $this->requireAdministrator($request);
         return view('notifications.compose', [
             'roles'=>Role::withCount(['users'=>fn($q)=>$q->where('active',true)])->orderBy('name')->get(),
             'recipients'=>User::with('role')->where('active',true)->orderBy('name')->get(),
@@ -19,6 +25,7 @@ final class NotificationBroadcastController
     }
     public function store(Request $request)
     {
+        $this->requireAdministrator($request);
         foreach (['title','message'] as $field) if (is_string($request->input($field))) $request->merge([$field=>trim($request->input($field))]);
         $data = $request->validate([
             'submission_key'=>['required','uuid'], 'title'=>['nullable','string','max:120'], 'message'=>['required','string','max:2000'],
@@ -55,7 +62,7 @@ final class NotificationBroadcastController
             if (!$existing) throw $exception;
             return $this->alreadySent($request,$existing);
         }
-        return redirect()->route($request->user()->allows('notifications.view') ? 'broadcasts.index' : 'notifications.index')->with('success','Notification sent to '.$count.' active '.($count===1?'user.':'users.'));
+        return back()->with('success','Message sent to '.$count.' active '.($count===1?'user.':'users.'));
     }
     private function alreadySent(Request $request, NotificationBroadcast $broadcast)
     {
@@ -64,14 +71,37 @@ final class NotificationBroadcastController
     }
     public function index(Request $request)
     {
+        $this->requireAdministrator($request);
         $query=NotificationBroadcast::with('sender')->withCount(['deliveries as read_count'=>fn($q)=>$q->whereNotNull('read_at')]);
-        if (!$request->user()->isAdmin()) $query->where('sender_id',$request->user()->id);
         return view('notifications.sent',['broadcasts'=>$query->orderByDesc('id')->paginate(15)]);
     }
     public function recall(Request $request, NotificationBroadcast $broadcast)
     {
-        abort_unless($request->user()->isAdmin() || $broadcast->sender_id===$request->user()->id,403);
+        $this->requireAdministrator($request);
         NotificationBroadcast::whereKey($broadcast->id)->whereNull('recalled_at')->update(['recalled_at'=>now()]);
         return back()->with('success','Notification recalled. It is no longer visible in recipients’ inboxes.');
+    }
+    public function update(Request $request, NotificationBroadcast $broadcast)
+    {
+        $this->requireAdministrator($request);
+        foreach (['title','message'] as $field) if (is_string($request->input($field))) $request->merge([$field => trim($request->input($field))]);
+        $data = $request->validate(['title'=>['nullable','string','max:120'], 'message'=>['required','string','max:2000']]);
+        $data['title'] = filled($data['title'] ?? null) ? $data['title'] : 'Notification';
+        DB::transaction(function () use ($broadcast, $data) {
+            $broadcast->update($data);
+            CrmNotification::where('broadcast_id', $broadcast->id)->update([
+                'title'=>$data['title'], 'message'=>'From '.($broadcast->sender?->name ?: 'Administrator').': '.$data['message'], 'updated_at'=>now(),
+            ]);
+        });
+        return back()->with('success', 'Sent message updated for all recipients.');
+    }
+    public function destroy(Request $request, NotificationBroadcast $broadcast)
+    {
+        $this->requireAdministrator($request);
+        DB::transaction(function () use ($broadcast) {
+            CrmNotification::where('broadcast_id', $broadcast->id)->delete();
+            $broadcast->delete();
+        });
+        return back()->with('success', 'Sent message and its delivery records were deleted.');
     }
 }

@@ -15,12 +15,16 @@ abstract class TestCase extends FrameworkTestCase
         // PHPUnit sets these values explicitly. Reapply them here so a locally
         // cached production config can never redirect destructive tests to the
         // application database.
+        $this->app->detectEnvironment(fn () => 'testing');
         config([
+            'app.env' => 'testing',
             'database.default' => 'pgsql',
             'database.connections.pgsql.host' => getenv('DB_HOST') ?: '127.0.0.1',
             'database.connections.pgsql.port' => getenv('DB_PORT') ?: '5432',
             'database.connections.pgsql.database' => getenv('DB_DATABASE') ?: 'gagandeep_steels_test',
             'database.connections.pgsql.username' => getenv('DB_USERNAME') ?: 'gagandeep',
+            'cache.default' => 'array',
+            'session.driver' => 'array',
         ]);
         \Illuminate\Support\Facades\DB::purge('pgsql');
         $database = (string) config('database.connections.pgsql.database');

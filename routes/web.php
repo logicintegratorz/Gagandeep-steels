@@ -117,10 +117,12 @@ Route::middleware(['auth', 'session.limits', 'active.lead.call', 'crm.notificati
     Route::patch('/productivity/{module}/{item}/status', [\App\Http\Controllers\ProductivityController::class, 'updateStatus'])->whereIn('module', ['reminders','meetings','to-dos','notes'])->whereNumber('item')->name('productivity.status');
     Route::delete('/productivity-items/{item}', [\App\Http\Controllers\ProductivityController::class, 'destroy'])->whereNumber('item')->name('productivity.destroy');
     Route::get('/productivity-items/{item}/attachment', [\App\Http\Controllers\ProductivityController::class, 'attachment'])->whereNumber('item')->name('productivity.attachment');
-    Route::get('/notifications/compose', [\App\Http\Controllers\NotificationBroadcastController::class, 'compose'])->middleware('permission:notifications.send')->name('broadcasts.compose');
-    Route::post('/notifications/send', [\App\Http\Controllers\NotificationBroadcastController::class, 'store'])->middleware(['permission:notifications.send','throttle:10,1'])->name('broadcasts.store');
-    Route::get('/notifications/sent', [\App\Http\Controllers\NotificationBroadcastController::class, 'index'])->middleware('permission:notifications.view')->name('broadcasts.index');
-    Route::post('/notifications/sent/{broadcast}/recall', [\App\Http\Controllers\NotificationBroadcastController::class, 'recall'])->middleware('permission:notifications.recall')->name('broadcasts.recall');
+    Route::get('/notifications/compose', [\App\Http\Controllers\NotificationBroadcastController::class, 'compose'])->name('broadcasts.compose');
+    Route::post('/notifications/send', [\App\Http\Controllers\NotificationBroadcastController::class, 'store'])->middleware('throttle:10,1')->name('broadcasts.store');
+    Route::get('/notifications/sent', [\App\Http\Controllers\NotificationBroadcastController::class, 'index'])->name('broadcasts.index');
+    Route::post('/notifications/sent/{broadcast}/recall', [\App\Http\Controllers\NotificationBroadcastController::class, 'recall'])->name('broadcasts.recall');
+    Route::put('/notifications/sent/{broadcast}', [\App\Http\Controllers\NotificationBroadcastController::class, 'update'])->name('broadcasts.update');
+    Route::delete('/notifications/sent/{broadcast}', [\App\Http\Controllers\NotificationBroadcastController::class, 'destroy'])->name('broadcasts.destroy');
     Route::post('/notifications/sound', [\App\Http\Controllers\NotificationController::class, 'sound'])->name('notifications.sound');
     Route::get('/notifications/count', [\App\Http\Controllers\NotificationController::class, 'count'])->name('notifications.count');
     Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'readAll'])->name('notifications.read-all');
