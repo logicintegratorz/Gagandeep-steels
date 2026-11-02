@@ -230,6 +230,7 @@
     min-height: 28px;
     padding: 0;
     justify-content: center;
+    transform: translateY(3px);
 }
 .dashboard-page .dash-summary-grid.is-chart-mode .dash-summary {
     height: 306px;
