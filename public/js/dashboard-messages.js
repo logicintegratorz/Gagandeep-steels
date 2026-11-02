@@ -14,8 +14,8 @@
   const audience = recipientForm.querySelector('[data-message-audience]');
   const summary = recipientForm.querySelector('[data-message-recipient-summary]');
   const syncRecipients = () => {
+    if (allUsers.checked) recipients.forEach(input => { input.checked = true; });
     const selected = recipients.filter(input => input.checked);
-    if (allUsers.checked) recipients.forEach(input => { input.checked = false; });
     audience.value = allUsers.checked ? 'all' : 'users';
     summary.textContent = allUsers.checked ? 'All active users' : `${selected.length} user${selected.length === 1 ? '' : 's'} selected`;
   };
@@ -24,8 +24,9 @@
     syncRecipients();
   });
   recipients.forEach(input => input.addEventListener('change', () => {
-    if (input.checked) allUsers.checked = false;
+    allUsers.checked = false;
     if (!recipients.some(option => option.checked)) allUsers.checked = true;
     syncRecipients();
   }));
+  syncRecipients();
 })();
