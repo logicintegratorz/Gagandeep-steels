@@ -9,6 +9,7 @@
     @if(auth()->user()->isAdmin())<link rel="stylesheet" href="{{ asset('css/lead-owner-history.css').'?v='.filemtime(public_path('css/lead-owner-history.css')) }}"><script src="{{ asset('js/lead-owner-history.js').'?v='.filemtime(public_path('js/lead-owner-history.js')) }}" defer></script>@endif
     <link rel="stylesheet" href="{{ asset('css/dashboard.css').'?v='.filemtime(public_path('css/dashboard.css')) }}">
     <script src="{{ asset('js/dashboard-call.js').'?v='.filemtime(public_path('js/dashboard-call.js')) }}" defer></script>
+    <script src="{{ asset('js/dashboard-messages.js').'?v='.filemtime(public_path('js/dashboard-messages.js')) }}" defer></script>
     <script src="{{ asset('js/dashboard-quick-call.js').'?v='.filemtime(public_path('js/dashboard-quick-call.js')) }}" defer></script>
     <link rel="stylesheet" href="{{ asset('css/calculator.css').'?v='.filemtime(public_path('css/calculator.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/theme.css').'?v='.filemtime(public_path('css/theme.css')) }}">
@@ -69,6 +70,7 @@
 
 </header>
 @php($announcements = \App\Models\CrmNotification::visibleTo(auth()->user())->whereNotNull('broadcast_id')->whereDate('created_at', now('Asia/Kolkata')->toDateString())->with('broadcast')->orderByDesc('id')->limit(10)->get())
+@php($dashboardMessages = \App\Models\CrmNotification::visibleTo(auth()->user())->orderByDesc('id')->limit(30)->get())
 <div class="dash-announcement"><button class="icon-button" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar"><x-icon name="menu"/></button><span class="announcement-label"><x-icon name="bell" size="15"/> {{ $announcements->first()?->title ?? 'Hi, '.auth()->user()->name }}</span>
 <div class="announcement-ticker" tabindex="0" aria-label="Admin messages">
 @if($announcements->isNotEmpty())
@@ -76,7 +78,23 @@
 @foreach($announcements as $notice)<span class="announcement-message"><strong>{{ $notice->title }}</strong> — {{ $notice->broadcast->message }}</span>@endforeach
 </div>
 @else<span>Welcome to Gagandeep Steels. Your workday, all in one place.</span>@endif
-</div><a href="{{ route('notifications.index') }}">View messages <span aria-hidden="true">↗</span></a></div>
+</div><button type="button" class="dash-view-messages" data-dashboard-messages-open aria-haspopup="dialog">View messages <span aria-hidden="true">↗</span></button></div>
+<dialog class="dashboard-messages-dialog" data-dashboard-messages aria-labelledby="dashboard-messages-title">
+  <section class="dashboard-messages-card">
+    <header><div><p class="dashboard-messages-eyebrow">CRM INBOX</p><h2 id="dashboard-messages-title">Messages</h2><p>{{ $dashboardMessages->whereNull('read_at')->count() }} unread · latest 30 records</p></div><button type="button" class="icon-button" data-dashboard-messages-close aria-label="Close messages">×</button></header>
+    <div class="dashboard-messages-actions"><form method="POST" action="{{ route('notifications.read-all') }}">@csrf<button class="button secondary" @disabled($dashboardMessages->whereNull('read_at')->isEmpty())>Mark all as read</button></form></div>
+    <div class="dashboard-messages-list">
+      @forelse($dashboardMessages as $message)
+        <article class="dashboard-message {{ $message->read_at ? 'is-read' : 'is-unread' }}">
+          <div class="dashboard-message-copy"><strong>{{ $message->title }}</strong><p>{{ $message->message }}</p><time datetime="{{ $message->created_at->toIso8601String() }}">{{ $message->created_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }} IST</time></div>
+          <div class="dashboard-message-controls">@unless($message->read_at)<form method="POST" action="{{ route('notifications.read', $message->id) }}">@csrf @method('PATCH')<button type="submit" class="button secondary">Mark read</button></form>@endunless<form method="POST" action="{{ route('notifications.destroy', $message->id) }}">@csrf @method('DELETE')<button type="submit" class="button secondary">Dismiss</button></form></div>
+        </article>
+      @empty
+        <div class="dashboard-messages-empty"><strong>No messages yet</strong><p>New alerts, assignments and admin messages will appear here.</p></div>
+      @endforelse
+    </div>
+  </section>
+</dialog>
 </div>
 <main id="main" class="dash-main">
     <div class="dash-heading"><div></div><div class="dash-overview-actions"><span class="dash-date">{{ now('Asia/Kolkata')->format('l, d M Y') }}</span><button type="button" class="dash-chart-toggle" data-dashboard-chart-toggle aria-pressed="false" aria-label="Show pie chart view" title="Show pie chart view"><x-icon name="chart" size="17"/></button></div></div>
