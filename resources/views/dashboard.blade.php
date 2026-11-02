@@ -226,11 +226,12 @@
 /* Keep the dashboard overview compact and aligned in both list and pie modes. */
 .dashboard-page .dash-chart-toggle {
     width: 30px;
-    height: 28px;
-    min-height: 28px;
+    height: 30px;
+    min-height: 30px;
     padding: 0;
     justify-content: center;
-    transform: translateY(3px);
+    border-radius: 50%;
+    transform: translateY(2px);
 }
 .dashboard-page .dash-summary-grid.is-chart-mode .dash-summary {
     height: 306px;
