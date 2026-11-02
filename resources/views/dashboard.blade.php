@@ -225,9 +225,9 @@
 <style>
 /* Keep the dashboard overview compact and aligned in both list and pie modes. */
 .dashboard-page .dash-chart-toggle {
-    width: 34px;
-    height: 34px;
-    min-height: 30px;
+    width: 30px;
+    height: 28px;
+    min-height: 28px;
     padding: 0;
     justify-content: center;
 }
