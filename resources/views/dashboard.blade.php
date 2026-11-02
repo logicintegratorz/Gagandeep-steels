@@ -82,11 +82,11 @@
 </div><button type="button" class="dash-view-messages" data-dashboard-messages-open aria-haspopup="dialog">View messages <span aria-hidden="true">↗</span></button></div>
 <dialog class="dashboard-messages-dialog" data-dashboard-messages aria-labelledby="dashboard-messages-title">
   <section class="dashboard-messages-card">
-    <header><div><p class="dashboard-messages-eyebrow">CRM INBOX</p><h2 id="dashboard-messages-title">Messages</h2><p>{{ $dashboardMessages->whereNull('read_at')->count() }} unread · latest 30 records</p></div><button type="button" class="icon-button" data-dashboard-messages-close aria-label="Close messages">×</button></header>
+    <header><div><p class="dashboard-messages-eyebrow">CRM INBOX</p><h2 id="dashboard-messages-title">Messages</h2></div><button type="button" class="icon-button" data-dashboard-messages-close aria-label="Close messages">×</button></header>
     @if(auth()->user()->isAdmin())
-      <details class="dashboard-message-composer" open><summary class="button primary">+ Send message</summary>
+      <div class="dashboard-message-composer">
         <form method="POST" action="{{ route('broadcasts.store') }}">@csrf<input type="hidden" name="submission_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}"><input type="hidden" name="audience" value="all"><label>Title (optional)<input name="title" maxlength="120" placeholder="Message title"></label><label>Message *<textarea name="message" rows="3" maxlength="2000" required placeholder="Write a clear message for all active users"></textarea></label><div><button class="button primary">Send to all active users</button></div></form>
-      </details>
+      </div>
     @endif
     <div class="dashboard-messages-actions"><form method="POST" action="{{ route('notifications.read-all') }}">@csrf<button class="button secondary" @disabled($dashboardMessages->whereNull('read_at')->isEmpty())>Mark all as read</button></form></div>
     <div class="dashboard-messages-list">
