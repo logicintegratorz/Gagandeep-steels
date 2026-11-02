@@ -70,7 +70,7 @@
 
 </header>
 @php($announcements = \App\Models\CrmNotification::visibleTo(auth()->user())->whereNotNull('broadcast_id')->whereDate('created_at', now('Asia/Kolkata')->toDateString())->with('broadcast')->orderByDesc('id')->limit(10)->get())
-@php($dashboardMessages = \App\Models\CrmNotification::visibleTo(auth()->user())->orderByDesc('id')->limit(30)->get())
+@php($dashboardMessages = \App\Models\CrmNotification::visibleTo(auth()->user())->with('broadcast')->orderByDesc('id')->limit(30)->get())
 @php($dashboardBroadcasts = auth()->user()->isAdmin() ? \App\Models\NotificationBroadcast::with('sender')->orderByDesc('id')->limit(15)->get() : collect())
 <div class="dash-announcement"><button class="icon-button" id="menu-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="sidebar"><x-icon name="menu"/></button><span class="announcement-label"><x-icon name="bell" size="15"/> Hi, {{ auth()->user()->name }}</span>
 <div class="announcement-ticker" tabindex="0" aria-label="Admin messages">
@@ -93,7 +93,7 @@
       @forelse($dashboardMessages as $message)
         <article class="dashboard-message {{ $message->read_at ? 'is-read' : 'is-unread' }}">
           <div class="dashboard-message-copy"><strong>{{ $message->title }}</strong><p>{{ $message->message }}</p><time datetime="{{ $message->created_at->toIso8601String() }}">{{ $message->created_at->timezone('Asia/Kolkata')->format('d M Y, h:i A') }} IST</time></div>
-          <div class="dashboard-message-controls">@unless($message->read_at)<form method="POST" action="{{ route('notifications.read', $message->id) }}">@csrf @method('PATCH')<button type="submit" class="button secondary">Mark read</button></form>@endunless<form method="POST" action="{{ route('notifications.destroy', $message->id) }}">@csrf @method('DELETE')<button type="submit" class="button secondary">Dismiss</button></form></div>
+          <div class="dashboard-message-controls">@if(auth()->user()->isAdmin() && $message->broadcast && !$message->broadcast->recalled_at)<details class="dashboard-inline-message-edit"><summary class="button secondary">Edit message</summary><form method="POST" action="{{ route('broadcasts.update', $message->broadcast) }}">@csrf @method('PUT')<label>Title<input name="title" maxlength="120" value="{{ $message->broadcast->title }}"></label><label>Message<textarea name="message" rows="3" maxlength="2000" required>{{ $message->broadcast->message }}</textarea></label><button class="button primary">Save changes</button></form></details><form method="POST" action="{{ route('broadcasts.destroy', $message->broadcast) }}" onsubmit="return confirm('Delete this message for every recipient?')">@csrf @method('DELETE')<button type="submit" class="button secondary">Delete message</button></form>@endif @unless($message->read_at)<form method="POST" action="{{ route('notifications.read', $message->id) }}">@csrf @method('PATCH')<button type="submit" class="button secondary">Mark read</button></form>@endunless<form method="POST" action="{{ route('notifications.destroy', $message->id) }}">@csrf @method('DELETE')<button type="submit" class="button secondary">Dismiss</button></form></div>
         </article>
       @empty
         <div class="dashboard-messages-empty"><strong>No messages yet</strong><p>New alerts, assignments and admin messages will appear here.</p></div>
