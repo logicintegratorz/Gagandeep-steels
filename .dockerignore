@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+.local
+vendor
+node_modules
+tests
+storage/
+storage/logs/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/cache/data/*
+bootstrap/cache/*.php
+*.tar.gz
