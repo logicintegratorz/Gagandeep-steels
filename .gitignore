@@ -8,4 +8,7 @@
 /public/hot
 /public/storage
 
+# Hostinger/CI deployment bundles are generated locally and must never be committed.
+/storage/app/deployments/
+
 /.local/

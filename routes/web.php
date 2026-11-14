@@ -9,6 +9,7 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'session.limits', 'active.lead.call', 'crm.notifications', 'crm.audit'])->group(function () {
     Route::middleware('permission:leads.view')->group(function () {
+        Route::get('/search', [\App\Http\Controllers\GlobalSearchController::class, 'index'])->name('global-search.index');
         Route::get('/dashboard/metrics/{metric}', \App\Http\Controllers\DashboardMetricController::class)->name('dashboard.metric');
         Route::get('/lead-source-report', \App\Http\Controllers\LeadSourceReportController::class)->name('leads.source-report');
         Route::get('/lead-groups', [\App\Http\Controllers\LeadGroupController::class,'index'])->name('lead-groups.index');

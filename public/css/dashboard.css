@@ -21,6 +21,11 @@
 /* The homepage uses the existing shared CRM sidebar and main offset. */
 .dashboard-page .dash-header{gap:14px;flex-wrap:wrap}
 .dashboard-page .dash-brand{display:none}
+.dashboard-page .dash-global-search{display:flex;align-items:center;gap:8px;flex:1 1 330px;max-width:500px;min-width:230px;height:44px;padding:0 10px;border:1px solid var(--border,#dce5f1);border-radius:8px;background:var(--surface,#fff);color:var(--muted,#607088)}
+.dashboard-page .dash-global-search:focus-within{border-color:var(--primary,#0645ad);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary,#0645ad) 14%,transparent)}
+.dashboard-page .dash-global-search input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:var(--ink,#24344d);font:inherit}
+.dashboard-page .dash-global-search input::placeholder{color:var(--muted,#607088)}
+.dashboard-page .dash-global-search button{border:0;background:transparent;color:var(--primary,#0645ad);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .dashboard-page .dash-shortcuts{justify-content:flex-start}
 .dashboard-page .dash-shell{display:block}
 
@@ -142,7 +147,7 @@
 .dashboard-page .dash-account-menu{top:52px}
 .dashboard-page .theme-toggle span{display:grid;place-items:center}
 .dashboard-page .theme-toggle span[hidden]{display:none!important}
-@media(max-width:850px){.dashboard-page .dash-shortcuts{justify-content:flex-end}.dashboard-page .dash-shortcuts .dash-tool-button{width:36px;min-width:36px;height:36px;min-height:36px;padding:0}}
+@media(max-width:850px){.dashboard-page .dash-global-search{order:3;flex-basis:100%;max-width:none}.dashboard-page .dash-shortcuts{justify-content:flex-end}.dashboard-page .dash-shortcuts .dash-tool-button{width:36px;min-width:36px;height:36px;min-height:36px;padding:0}}
 @media(max-width:550px){.dashboard-page .dash-summary-grid{grid-template-columns:repeat(5,minmax(210px,1fr))}}
 
 /* Keep the contacts heading controls on one visual baseline. */
@@ -221,6 +226,36 @@
 
 /* Lock the complete filter row together inside the Contacts table. */
 .dashboard-page .dash-table thead .dash-table-filter-row{position:sticky;top:0;z-index:8}.dashboard-page .dash-table-filter-row th{position:static!important;z-index:auto}
+
+/* Compact, single-line dashboard command bar. */
+.dashboard-page .dash-header{display:grid;grid-template-columns:minmax(300px,1fr) minmax(0,auto) auto;align-items:center;gap:12px;min-height:82px;padding:10px 28px;flex-wrap:nowrap}
+.dashboard-page .dash-global-search{width:100%;max-width:625px;height:42px;margin:0;border-radius:10px;background:#f7f9fd}
+.dashboard-page .dash-global-search input{font-size:14px}
+.dashboard-page .dash-global-search button{padding:5px 2px;font-size:12px}
+.dashboard-page .dash-shortcuts{display:flex;flex:0 1 auto;flex-wrap:nowrap;justify-content:flex-end;gap:7px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.dashboard-page .dash-shortcuts::-webkit-scrollbar{display:none}
+.dashboard-page .dash-shortcuts a,.dashboard-page .dash-shortcuts button{flex:0 0 auto;min-height:40px;height:40px;padding:8px 12px;border-radius:9px;font-size:13px}
+.dashboard-page .dash-shortcuts .dash-tool-button{width:40px;min-width:40px;height:40px;min-height:40px}
+.dashboard-page .dash-account{gap:7px;white-space:nowrap}
+.dashboard-page .dash-account summary{width:40px;height:40px;border-radius:10px}
+.dashboard-page .dash-account-menu{top:48px}
+
+@media(max-width:1450px){
+    .dashboard-page .dash-header{grid-template-columns:minmax(260px,1fr) minmax(0,auto) auto;padding-inline:20px}
+    .dashboard-page .dash-shortcuts a span,.dashboard-page .dash-shortcuts button span{display:none}
+    .dashboard-page .dash-shortcuts a,.dashboard-page .dash-shortcuts button{width:40px;min-width:40px;justify-content:center;padding:8px}
+}
+@media(max-width:980px){
+    .dashboard-page .dash-header{grid-template-columns:minmax(0,1fr) auto;min-height:auto;padding:10px 16px}
+    .dashboard-page .dash-global-search{max-width:none}
+    .dashboard-page .dash-shortcuts{grid-column:1/-1;grid-row:2;justify-content:flex-start;width:100%}
+}
+@media(max-width:560px){
+    .dashboard-page .dash-header{gap:8px;padding:8px 12px}
+    .dashboard-page .dash-global-search{height:38px}
+    .dashboard-page .dash-shortcuts a,.dashboard-page .dash-shortcuts button,.dashboard-page .dash-shortcuts .dash-tool-button{width:36px;min-width:36px;height:36px;min-height:36px}
+    .dashboard-page .dash-account summary{width:36px;height:36px}
+}
 .dashboard-page .dash-page-size{display:flex;align-items:center;gap:6px;font-size:12px;color:#52647e}.dashboard-page .dash-page-size select{width:70px;height:36px;padding:4px 8px;margin:0}.dashboard-page .dash-contacts-toolbar{position:static!important}.dashboard-page .dash-archive-untouched-link{position:static!important}.dashboard-page .dash-table thead{position:sticky;top:0;z-index:8}.dashboard-page .dash-table-filter-row{position:static!important}
 /* Compact, task-focused controls inside Contacts multi actions. */
 .dash-multi-dialog{width:min(94vw,620px);max-height:90dvh}.dash-multi-card{box-sizing:border-box;max-height:90dvh;padding:20px;overflow:auto}.dash-multi-heading{padding-bottom:12px}.dash-multi-help{margin:12px 0}.dash-multi-options{gap:8px}.dash-multi-option{min-height:44px;padding:10px 13px}.dash-multi-form{display:grid;gap:12px;padding-top:14px}.dash-multi-form[hidden]{display:none}.dash-multi-form-title{display:flex;align-items:center;gap:12px}.dash-multi-form-title button{padding:0;border:0;background:none;color:var(--primary,#0645ad);font:inherit;cursor:pointer}.dash-multi-form-title strong{font-size:17px}.dash-multi-fields{display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.dash-multi-fields.is-active{display:grid}.dash-multi-fields label{display:grid;gap:5px;color:var(--ink,#152c4f);font-size:13px;font-weight:650}.dash-multi-fields input,.dash-multi-fields select,.dash-multi-fields textarea{box-sizing:border-box;width:100%;min-height:42px;padding:9px 11px;border:1px solid var(--border,#ccd8e8);border-radius:8px;background:var(--surface,#fff);color:var(--ink,#152c4f);font:inherit}.dash-multi-fields textarea{resize:vertical;min-height:70px}.dash-multi-fields label:has(textarea),.dash-multi-fields>p{grid-column:1/-1}.dash-multi-fields>p{margin:0;color:var(--muted,#607088);font-size:12px;line-height:1.5}.dash-multi-danger{padding:10px;border:1px solid #edc1c6;border-radius:9px;background:#fff7f8}.dash-multi-status{display:block;min-height:18px;color:var(--muted,#607088);font-size:13px}.dash-multi-status.is-error{color:#b42332}.dash-multi-links{display:grid;gap:7px;max-height:180px;overflow:auto}.dash-multi-links a{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;border:1px solid var(--border,#dce5f1);border-radius:8px;color:var(--primary,#0645ad);text-decoration:none}.dash-multi-actions{display:flex;justify-content:flex-end;gap:9px}.dash-multi-actions .button{min-height:42px}@media(max-width:560px){.dash-multi-fields{grid-template-columns:1fr}.dash-multi-dialog{width:min(96vw,620px)}}

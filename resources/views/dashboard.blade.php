@@ -29,6 +29,12 @@
 <div class="dash-top-stack">
 <header class="dash-header">
     <a class="dash-brand" href="{{ route('home') }}"><img src="{{ asset('images/gagandeep-steels-logo.png') }}" alt="Gagandeep Steels — Iron & Steel Suppliers" width="267" height="81"></a>
+    <form class="dash-global-search" method="GET" action="{{ route('global-search.index') }}" role="search">
+        <label class="sr-only" for="dash-global-search-input">Search CRM</label>
+        <x-icon name="search" size="18"/>
+        <input id="dash-global-search-input" type="search" name="q" maxlength="150" autocomplete="off" placeholder="Search name, number or product">
+        <button type="submit">Search</button>
+    </form>
     <nav class="dash-shortcuts" aria-label="Quick actions">
         <button type="button" class="dash-tool-button calculator-trigger" data-calculator-open aria-label="Open calculator" title="Calculator"><x-icon name="calculator" size="20"/></button>
         <button type="button" class="dash-tool-button theme-toggle" data-theme-toggle aria-label="Use dark theme" title="Switch theme"><span data-theme-icon="dark"><x-icon name="moon" size="20"/></span><span data-theme-icon="light" hidden><x-icon name="sun" size="20"/></span></button>
