@@ -5,9 +5,9 @@ if (!(Test-Path $php) -or !(Test-Path 'vendor/autoload.php') -or !(Test-Path '.e
     throw 'Local setup is incomplete. See LOCAL-TESTING.md.'
 }
 $connection = New-Object System.Net.Sockets.TcpClient
-try { $connection.Connect('127.0.0.1', 5432); $databaseRunning = $true } catch { $databaseRunning = $false } finally { $connection.Dispose() }
+try { $connection.Connect('127.0.0.1', 3307); $databaseRunning = $true } catch { $databaseRunning = $false } finally { $connection.Dispose() }
 if (!$databaseRunning) {
-    throw 'PostgreSQL is not running on 127.0.0.1:5432. Start the postgresql-x64-18 Windows service and try again.'
+    throw 'MySQL is not running on 127.0.0.1:3307. Start .local\\mysql-8.4.9-winx64\\bin\\mysqld.exe with .local\\my.ini and try again.'
 }
 & $php artisan migrate --force
 if ($LASTEXITCODE -ne 0) { throw 'Database migration failed.' }

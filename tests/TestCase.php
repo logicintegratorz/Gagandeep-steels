@@ -18,18 +18,19 @@ abstract class TestCase extends FrameworkTestCase
         $this->app->detectEnvironment(fn () => 'testing');
         config([
             'app.env' => 'testing',
-            'database.default' => 'pgsql',
-            'database.connections.pgsql.host' => getenv('DB_HOST') ?: '127.0.0.1',
-            'database.connections.pgsql.port' => getenv('DB_PORT') ?: '5432',
-            'database.connections.pgsql.database' => getenv('DB_DATABASE') ?: 'gagandeep_steels_test',
-            'database.connections.pgsql.username' => getenv('DB_USERNAME') ?: 'gagandeep',
+            'database.default' => 'mysql',
+            'database.connections.mysql.host' => getenv('DB_HOST') ?: '127.0.0.1',
+            'database.connections.mysql.port' => getenv('DB_PORT') ?: '3307',
+            'database.connections.mysql.database' => getenv('DB_DATABASE') ?: 'gagandeep_steels_test',
+            'database.connections.mysql.username' => getenv('DB_USERNAME') ?: 'crm_local',
+            'database.connections.mysql.password' => getenv('DB_PASSWORD') ?: 'LocalCRM-2026-Hostinger',
             'cache.default' => 'array',
             'session.driver' => 'array',
         ]);
-        \Illuminate\Support\Facades\DB::purge('pgsql');
-        $database = (string) config('database.connections.pgsql.database');
-        if (config('database.default') !== 'pgsql' || !str_ends_with($database, '_test')) {
-            throw new \RuntimeException('Tests require a disposable PostgreSQL database ending in _test. Configure .env.testing first.');
+        \Illuminate\Support\Facades\DB::purge('mysql');
+        $database = (string) config('database.connections.mysql.database');
+        if (config('database.default') !== 'mysql' || !str_ends_with($database, '_test')) {
+            throw new \RuntimeException('Tests require a disposable MySQL database ending in _test. Configure .env.testing first.');
         }
         // Guard above runs BEFORE destructive test-only schema recreation.
         $this->artisan('migrate:fresh', ['--force' => true])->assertSuccessful();

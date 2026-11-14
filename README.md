@@ -1,25 +1,24 @@
-# Gagandeep Steels CRM — Laravel + PostgreSQL
+# Gagandeep Steels CRM — Laravel + MySQL
 
 Production CRM for leads, pipeline, tasks, reminders, activities, products, calling, notifications, content documents and administrator-managed navigation.
 
 ## Requirements
 
-- PHP 8.3+ with PDO and `pdo_pgsql`
-- PostgreSQL 15+
+- PHP 8.3+ with PDO and `pdo_mysql`
+- MySQL 8+ or MariaDB 10.6+
 - Composer 2
 - A web server whose document root points only to `public/`
 
 ## Local setup
 
-1. Create PostgreSQL databases owned by a dedicated application role:
+1. Create MySQL databases and a dedicated application user:
 
    ```sql
-   CREATE ROLE gagandeep LOGIN PASSWORD 'strong-password';
-   CREATE DATABASE gagandeep_steels OWNER gagandeep ENCODING 'UTF8';
-   CREATE DATABASE gagandeep_steels_test OWNER gagandeep ENCODING 'UTF8';
+   CREATE DATABASE gagandeep_steels CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE DATABASE gagandeep_steels_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
 
-2. Copy `.env.example` to `.env`, set the PostgreSQL credentials and run:
+2. Copy `.env.example` to `.env`, set the MySQL credentials and run:
 
    ```powershell
    composer install
@@ -28,7 +27,7 @@ Production CRM for leads, pipeline, tasks, reminders, activities, products, call
    php artisan storage:link
    ```
 
-3. Start the CRM with `start-local.cmd`. PostgreSQL must be listening on `127.0.0.1:5432`.
+3. Start the CRM with `start-local.cmd`. Local MySQL must be listening on `127.0.0.1:3307`.
 
 ## Tests
 
@@ -42,6 +41,6 @@ Tests recreate only the protected `_test` database. Never point test settings at
 
 ## Production
 
-Use `.env.production.example` and follow `POSTGRESQL-DEPLOYMENT.md`. Keep `APP_DEBUG=false`, HTTPS and secure cookies enabled. Add the Laravel scheduler cron entry so imports, reminders, list automations, tenure processing and same-stage lead alerts run automatically.
+Use `.env.production.example` and follow `HOSTINGER-MYSQL-DEPLOYMENT.md`. Keep `APP_DEBUG=false`, HTTPS and secure cookies enabled. Add the Laravel scheduler cron entry so imports, reminders, list automations, tenure processing and same-stage lead alerts run automatically.
 
-Never run `migrate:fresh` against a live database. Back up PostgreSQL before every deployment.
+Never run `migrate:fresh` against a live database. Back up MySQL before every deployment.

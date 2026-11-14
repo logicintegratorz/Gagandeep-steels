@@ -1,5 +1,5 @@
 <#
-    Safe Laravel/PostgreSQL deployment helper.
+    Safe Laravel/MySQL deployment helper.
 
     Run on the production server from the project root:
       powershell -ExecutionPolicy Bypass -File .\deploy.ps1
@@ -13,7 +13,7 @@ param(
     [switch]$AllowLocal,
     [string]$PhpPath = "",
     [string]$ComposerPath = "",
-    [string]$PgDumpPath = ""
+    [string]$MySqlDumpPath = ""
 )
 
 $ErrorActionPreference = 'Stop'
@@ -32,12 +32,12 @@ function Resolve-CommandPath([string]$preferred, [string]$fallback) {
 }
 
 if (-not (Test-Path -LiteralPath '.env')) {
-    throw 'Missing .env. Copy .env.production.example to .env and configure PostgreSQL before deploying.'
+    throw 'Missing .env. Copy .env.production.example to .env and configure MySQL before deploying.'
 }
 
 $php = Resolve-CommandPath $PhpPath 'php'
 if (-not $php -and (Test-Path -LiteralPath '.local\php\php.exe')) { $php = (Resolve-Path '.local\php\php.exe').Path }
-if (-not $php) { throw 'PHP was not found. Install PHP with pdo_pgsql enabled, or use -PhpPath.' }
+if (-not $php) { throw 'PHP was not found. Install PHP with pdo_mysql enabled, or use -PhpPath.' }
 
 $envLines = Get-Content '.env' | Where-Object { $_ -match '^(APP_ENV|DB_CONNECTION)=' }
 $appEnvironment = ($envLines | Where-Object { $_ -match '^APP_ENV=' } | Select-Object -First 1) -replace '^APP_ENV=', ''
@@ -45,7 +45,7 @@ $databaseDriver = ($envLines | Where-Object { $_ -match '^DB_CONNECTION=' } | Se
 if ($appEnvironment -ne 'production' -and -not ($AllowLocal -and $appEnvironment -eq 'local')) {
     throw "Refusing deployment: APP_ENV must be production (current: $appEnvironment). Use -AllowLocal only for this local development machine."
 }
-if ($databaseDriver -ne 'pgsql') { throw "Refusing deployment: DB_CONNECTION must be pgsql (current: $databaseDriver)." }
+if ($databaseDriver -ne 'mysql') { throw "Refusing deployment: DB_CONNECTION must be mysql (current: $databaseDriver)." }
 
 function Get-DotEnvValue([string]$name) {
     $line = Get-Content '.env' | Where-Object { $_ -match ("^{0}=" -f [regex]::Escape($name)) } | Select-Object -First 1
@@ -53,25 +53,21 @@ function Get-DotEnvValue([string]$name) {
     return (($line -replace ("^{0}=" -f [regex]::Escape($name)), '').Trim().Trim('"').Trim("'"))
 }
 
-# PostgreSQL client utilities use PG* environment variables, while Laravel uses DB_*.
-$env:PGHOST = Get-DotEnvValue 'DB_HOST'
-$env:PGPORT = Get-DotEnvValue 'DB_PORT'
-$env:PGDATABASE = Get-DotEnvValue 'DB_DATABASE'
-$env:PGUSER = Get-DotEnvValue 'DB_USERNAME'
-$env:PGPASSWORD = Get-DotEnvValue 'DB_PASSWORD'
-if (-not $env:PGHOST -or -not $env:PGDATABASE -or -not $env:PGUSER) { throw 'Incomplete PostgreSQL DB_* configuration in .env.' }
+if (-not (Get-DotEnvValue 'DB_HOST') -or -not (Get-DotEnvValue 'DB_DATABASE') -or -not (Get-DotEnvValue 'DB_USERNAME')) { throw 'Incomplete MySQL DB_* configuration in .env.' }
 
 if (-not $SkipBackup) {
-    $pgDump = Resolve-CommandPath $PgDumpPath 'pg_dump'
-    if (-not $pgDump) {
-        Write-Warning 'pg_dump was not found; database backup was skipped. Install PostgreSQL client tools or rerun with -PgDumpPath.'
+    $mySqlDump = Resolve-CommandPath $MySqlDumpPath 'mysqldump'
+    if (-not $mySqlDump) {
+        Write-Warning 'mysqldump was not found; database backup was skipped. Install MySQL client tools or rerun with -MySqlDumpPath.'
     } else {
         $backupDirectory = Join-Path $projectRoot 'storage\app\backups'
         New-Item -ItemType Directory -Force -Path $backupDirectory | Out-Null
-        $backupFile = Join-Path $backupDirectory ("postgresql-before-deploy-{0}.dump" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
-        & $pgDump --format=custom --file=$backupFile
-        if ($LASTEXITCODE -ne 0) { throw 'PostgreSQL backup failed. Deployment stopped before migrations.' }
-        Write-Host "PostgreSQL backup created: $backupFile" -ForegroundColor Green
+        $backupFile = Join-Path $backupDirectory ("mysql-before-deploy-{0}.sql" -f (Get-Date -Format 'yyyyMMdd-HHmmss'))
+        $dbHost = Get-DotEnvValue 'DB_HOST'; $dbPort = Get-DotEnvValue 'DB_PORT'; $dbName = Get-DotEnvValue 'DB_DATABASE'; $dbUser = Get-DotEnvValue 'DB_USERNAME'; $env:MYSQL_PWD = Get-DotEnvValue 'DB_PASSWORD'
+        & $mySqlDump --host=$dbHost --port=$dbPort --user=$dbUser --single-transaction --routines --events --result-file=$backupFile $dbName
+        Remove-Item Env:MYSQL_PWD -ErrorAction SilentlyContinue
+        if ($LASTEXITCODE -ne 0) { throw 'MySQL backup failed. Deployment stopped before migrations.' }
+        Write-Host "MySQL backup created: $backupFile" -ForegroundColor Green
     }
 }
 
@@ -103,4 +99,4 @@ try {
 }
 
 $target = if ($appEnvironment -eq 'production') { 'production' } else { 'local' }
-Write-Host "Deployment completed successfully with PostgreSQL ($target)." -ForegroundColor Green
+Write-Host "Deployment completed successfully with MySQL ($target)." -ForegroundColor Green
