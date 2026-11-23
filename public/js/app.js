@@ -4,6 +4,23 @@
   const sidebar = document.getElementById('sidebar');
   const backdrop = document.querySelector('.nav-backdrop');
   const mobileNavigation = window.matchMedia('(max-width: 850px)');
+  // Keep the navigation list where the user left it when a sidebar link
+  // loads the next CRM page. This avoids jumping back to the first item.
+  const sidebarScrollKey = 'crm.sidebar.scroll-top';
+  if (sidebar) {
+    try {
+      const savedSidebarTop = Number(sessionStorage.getItem(sidebarScrollKey));
+      if (Number.isFinite(savedSidebarTop) && savedSidebarTop > 0) {
+        requestAnimationFrame(() => { sidebar.scrollTop = savedSidebarTop; });
+      }
+      sidebar.addEventListener('scroll', () => sessionStorage.setItem(sidebarScrollKey, String(sidebar.scrollTop)), { passive: true });
+      sidebar.addEventListener('click', event => {
+        if (event.target.closest('a[href]')) sessionStorage.setItem(sidebarScrollKey, String(sidebar.scrollTop));
+      });
+    } catch (_) {
+      // Storage can be unavailable in restrictive browser modes.
+    }
+  }
   const setNavigation = expanded => {
     menu?.setAttribute('aria-expanded', String(expanded));
     document.body.classList.toggle('nav-open', expanded);
@@ -203,8 +220,10 @@
     let dragAllowed = false;
     const containers = [reorderNavigation, ...reorderNavigation.querySelectorAll('.sidebar-group-items')];
     reorderNavigation.querySelectorAll('[data-sidebar-key]').forEach(item => {
-      const handle = item.querySelector('[data-sidebar-drag-handle]');
-      handle?.addEventListener('pointerdown', () => { dragAllowed = true; });
+      // The visual reorder button is intentionally hidden. Administrators can
+      // still drag any sidebar item directly, so the saved shared order works
+      // without adding clutter beside every navigation item.
+      item.addEventListener('pointerdown', () => { dragAllowed = true; });
       item.addEventListener('dragstart', event => {
         if (!dragAllowed) { event.preventDefault(); return; }
         dragged = item;
@@ -250,5 +269,40 @@
     const activeCall = document.querySelector('[data-lead-call-dialog][open], [data-lead-call-dialog][data-call-active="1"]');
     if (event.persisted && !activeCall) window.location.reload();
   });
+  document.querySelectorAll('[data-auto-global-search]').forEach(form => {
+    const input = form.querySelector('input[type="search"]');
+    if (!input) return;
+    let timer = null;
+    input.addEventListener('input', () => {
+      window.clearTimeout(timer);
+      const term = input.value.trim();
+      if (!term) return;
+      timer = window.setTimeout(() => form.requestSubmit(), 350);
+    });
+  });
+
+  // Consistent CRM back navigation: Esc or a right mouse click returns to
+  // the immediately previous page instead of opening the browser menu.
+  const goToPreviousPage = event => {
+    if (event.type === 'keydown' && (event.key !== 'Escape' || event.repeat)) return;
+    if (event.type === 'keydown') {
+      event.preventDefault();
+      const openDialog = document.querySelector('dialog[open]');
+      if (openDialog) {
+        openDialog.close();
+        return;
+      }
+    }
+    if (event.type === 'contextmenu') event.preventDefault();
+    const openDropdowns = [...document.querySelectorAll('details[open]')];
+    if (openDropdowns.length) {
+      openDropdowns.forEach(dropdown => dropdown.removeAttribute('open'));
+      return;
+    }
+    if (window.history.length > 1) window.history.back();
+  };
+  // Capture Esc before dialogs or component handlers consume it.
+  window.addEventListener('keydown', goToPreviousPage, true);
+  document.addEventListener('contextmenu', goToPreviousPage);
 })();
 

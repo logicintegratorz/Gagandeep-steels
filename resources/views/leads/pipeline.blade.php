@@ -5,7 +5,7 @@
   <link rel="stylesheet" href="{{ asset('css/lead-owner-history.css').'?v='.filemtime(public_path('css/lead-owner-history.css')) }}">
   <script src="{{ asset('js/lead-owner-history.js').'?v='.filemtime(public_path('js/lead-owner-history.js')) }}" defer></script>
  @endif
- <section class="panel lead-panel"><h2>Pipeline</h2>@include('leads.filters')
+ <section class="panel lead-panel"><h2>Pipeline</h2><p class="lead-section-help">Stage-wise view of platform leads and manually saved contacts. Drag a card into another column to change its stage.</p>@include('leads.filters')
   <div class="lead-pipeline">
    @foreach($columns as $stage=>$records)
     <section class="lead-column" id="stage-{{ \Illuminate\Support\Str::slug($stage) }}" data-pipeline-stage="{{ $stage }}">
@@ -13,8 +13,7 @@
      <div class="lead-column-body" tabindex="0" role="region" aria-label="{{ $stage }} leads">
       @forelse($records as $lead)
        <article class="lead-card {{ request('highlight')==$lead->id ? 'is-highlighted' : '' }}" draggable="{{ auth()->user()->allows('leads.stage') ? 'true' : 'false' }}" data-pipeline-card data-stage-url="{{ route('leads.stage',$lead) }}" data-version="{{ $lead->version }}" data-current-stage="{{ $lead->stage }}">
-        <a href="{{ route('leads.show',$lead) }}"><strong>{{ $lead->name }}</strong></a><p>{{ $lead->company }}</p><small>@if(auth()->user()->isAdmin())<button type="button" class="lead-owner-history-trigger" data-lead-history-url="{{ route('leads.history',$lead) }}" aria-haspopup="dialog" title="View full lead history">{{ $lead->owner?->name ?? 'Unassigned' }}</button>@else{{ $lead->owner?->name ?? 'Unassigned' }}@endif · {{ $lead->priority }}</small><p>{{ $lead->value ?? '—' }}</p>
-        @if(auth()->user()->allows('leads.stage'))@include('leads.stage')@endif
+        <a href="{{ route('leads.show',$lead) }}"><strong>{{ $lead->name }}</strong></a>@if($lead->connection_id === null)<small class="lead-chip">Manual contact</small>@else<small class="lead-chip">Platform lead</small>@endif<p>{{ $lead->company }}</p><small>@if(auth()->user()->isAdmin())<button type="button" class="lead-owner-history-trigger" data-lead-history-url="{{ route('leads.history',$lead) }}" aria-haspopup="dialog" title="View full lead history">{{ $lead->owner?->name ?? 'Unassigned' }}</button>@else{{ $lead->owner?->name ?? 'Unassigned' }}@endif · {{ $lead->priority }}</small><p>{{ $lead->value ?? '—' }}</p>
        </article>
       @empty<p>No leads</p>@endforelse
      </div>

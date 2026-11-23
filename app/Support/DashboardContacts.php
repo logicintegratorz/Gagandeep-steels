@@ -11,8 +11,15 @@ final class DashboardContacts
     public static function query(Request $request): Builder
     {
         $request->validate(['filters'=>'nullable|array','filters.name'=>'nullable|string|max:100','filters.company'=>'nullable|string|max:100','filters.stage'=>'nullable|string|max:100','filters.phone'=>'nullable|string|max:60','filters.location'=>'nullable|string|max:100','filters.source'=>'nullable|string|max:100','filters.category'=>'nullable|string|max:100','filters.owner'=>'nullable|string|max:100','filters.added'=>'nullable|date_format:Y-m-d','filters.score'=>'nullable|integer|between:0,100','filters.followups'=>'nullable|integer|min:0|max:100000']);
-        $contacts=Lead::visibleTo($request->user())->with('owner')->withCount(['workItems as follow_up_count'=>fn($q)=>$q->where('kind','Follow-up'),'repeatMatches'])->withExists(['visits as has_been_touched']);
-        return self::applyFilters($contacts, $request);
+        // The dashboard is the incoming-lead workspace. Manually saved contacts
+        // belong to the separate Contacts page and never appear in this table.
+        $platformLeads=Lead::visibleTo($request->user())
+            ->whereNotNull('connection_id')
+            ->with('owner')
+            ->withCount(['workItems as follow_up_count'=>fn($q)=>$q->where('kind','Follow-up'),'repeatMatches'])
+            ->withExists(['visits as has_been_touched']);
+
+        return self::applyFilters($platformLeads, $request);
     }
 
     public static function applyFilters(Builder $contacts, Request $request): Builder

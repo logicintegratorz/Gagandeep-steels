@@ -3,7 +3,9 @@
     <button type="button" class="sidebar-close icon-button" aria-label="Close navigation">×</button>
     <a class="brand" href="{{ route('home') }}"><img class="brand-logo" src="{{ asset('images/gagandeep-steels-logo.png') }}" alt="Gagandeep Steels — Iron &amp; Steel Suppliers" width="267" height="81"></a>
     @php
-        $sidebarItems = \App\Support\SidebarNavigation::visible(auth()->user());
+        $sidebarItems = collect(\App\Support\SidebarNavigation::visible(auth()->user()))
+            ->except(['activities', 'access', 'storage', 'screen-time', 'product-logs'])
+            ->all();
         $sidebarGroups = \App\Models\SidebarGroup::with('items')->orderBy('position')->orderBy('id')->get();
         $assignedSidebarKeys = $sidebarGroups->flatMap->items->pluck('item_key')->all();
         $unassignedSidebarItems = collect($sidebarItems)->except($assignedSidebarKeys);
@@ -20,11 +22,9 @@
                 </details>
             @endif
         @endforeach
-        @if(auth()->user()->isAdmin())
-            <div class="sidebar-nav-group sidebar-admin-group"><p class="sidebar-group-label">Admin</p><a class="{{ request()->routeIs('sidebar-groups.*') ? 'nav-active' : 'nav-link' }}" href="{{ route('sidebar-groups.index') }}"><x-icon name="menu"/><span>Sidebar groups</span></a></div>
-        @endif
     </nav>
-    <div class="profile"><span class="avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span><div>{{ auth()->user()->name }}<small>{{ auth()->user()->role->name }}</small></div></div>
+    @if(auth()->user()->isAdmin())<a class="sidebar-settings-link {{ request()->is('settings') ? 'nav-active' : 'nav-link' }}" href="{{ url('/settings') }}"><x-icon name="menu"/><span>Settings</span></a>@endif
+    <div class="profile"><span class="avatar">@if(auth()->user()->avatar_url)<img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}">@else{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}@endif</span><div>{{ auth()->user()->name }}<small>{{ auth()->user()->role->name }}</small></div></div>
     <form method="POST" action="{{ route('logout') }}" class="logout-form">@csrf<button type="submit" class="button secondary">Sign out</button></form>
 </aside>
 <button type="button" class="nav-backdrop" aria-label="Close navigation" tabindex="-1" hidden></button>

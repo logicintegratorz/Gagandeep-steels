@@ -23,27 +23,26 @@ final class DashboardCalendarController {
   $events=collect();
   $visibleLeads=fn()=> $viewer->allows('leads.view') ? Lead::visibleTo($viewer) : Lead::query()->whereRaw('1=0');
   $push=function($at,$kind,$title,$lead,$detail,$person,$status='',$url=null)use($events){
-   $events->push(['date'=>$at->format('Y-m-d'),'time'=>$at->format('H:i'),'kind'=>$kind,'title'=>$title,'lead'=>$lead->name,'detail'=>$detail,'person'=>$person,'status'=>$status,'url'=>$url ?: route('leads.show',$lead)]);
+   $events->push(['date'=>$at->format('Y-m-d'),'time'=>$at->format('H:i'),'kind'=>$kind,'title'=>$title,'lead'=>$lead?->name ?? 'Lead unavailable','detail'=>$detail,'person'=>$person,'status'=>$status,'url'=>$url ?: ($lead ? route('leads.show',$lead) : route('leads.work'))]);
   };
   $leads=$visibleLeads()->whereBetween('created_at',[$start,$end])->with('creator','owner')->when($selected,fn($q)=>$q->where('owner_id',$selected))->get();
   foreach($leads as $lead)$push($lead->created_at,'Lead','Lead added: '.$lead->name,$lead,$lead->company.' · Added by '.($lead->creator?->name ?: 'Import'),$lead->owner?->name ?: 'Unassigned');
-  $saved=$visibleLeads()->whereBetween('contact_saved_at',[$start,$end])->with('creator','owner')->get();
-  $savedActors=LeadActivity::whereIn('lead_id',$saved->pluck('id'))->where('action','Saved as contact')->orderByDesc('id')->get()->unique('lead_id')->keyBy('lead_id');
+  $saved=$visibleLeads()->whereNull('connection_id')->whereNotNull('contact_saved_at')->whereBetween('contact_saved_at',[$start,$end])->with('creator','owner')->get();
   $selectedName=$selected?User::find($selected)?->name:null;
   foreach($saved as $lead){
-   $person=$savedActors->get($lead->id)?->actor ?: $lead->creator?->name ?: $lead->owner?->name ?: 'Unknown';
+   $person=$lead->creator?->name ?: $lead->owner?->name ?: 'Unknown';
    if($selected && $person!==$selectedName)continue;
-   $push(CarbonImmutable::parse($lead->contact_saved_at),'Lead','Saved as contact: '.$lead->name,$lead,$lead->company ?: 'Contact saved',$person);
+   $push(CarbonImmutable::parse($lead->contact_saved_at),'Contact','Contact added: '.$lead->name,$lead,$lead->company ?: 'Manual contact',$person);
   }
   $work=LeadWorkItem::visibleTo($viewer)->whereBetween('due_at',[$start,$end])->with('lead','assignee')->when($selected,fn($q)=>$q->where('assigned_to',$selected))->when(!$viewer->allows('leads.view'),fn($q)=>$q->whereRaw('1=0'))->get();
   foreach($work as $item){
    if(!$viewer->allows(LeadWorkItem::permissionForKind($item->kind)))continue;
    $detail=implode("\n",array_filter(['Priority: '.$item->priority,$item->notes,$item->outcome?'Outcome: '.$item->outcome:null]));
-   $push($item->due_at,$item->kind,$item->title,$item->lead,$detail,$item->assignee?->name ?: 'Unassigned',$item->status,$viewer->isAdmin()?null:route('leads.work',['q'=>$item->title]));
+   $push($item->due_at,$item->kind,$item->title,$item->lead,$detail,$item->assignee?->name ?: 'Unassigned',$item->status,$viewer->isAdmin() ? ($item->lead ? null : route('leads.work',['q'=>$item->title])) : route('leads.work',['q'=>$item->title]));
   }
   if($viewer->allows('leads.activity')){
    $actor=$selected?User::find($selected)?->name:null;
-   $activities=LeadActivity::whereHas('lead',fn($q)=>$q->whereIn('id',$visibleLeads()->select('id')))->whereBetween('created_at',[$start,$end])->with('lead')->when($actor,fn($q)=>$q->where('actor',$actor))->where('action','!=','Saved as contact')->get();
+   $activities=LeadActivity::whereHas('lead',fn($q)=>$q->whereIn('id',$visibleLeads()->select('id')))->whereBetween('created_at',[$start,$end])->with('lead')->when($actor,fn($q)=>$q->where('actor',$actor))->get();
    foreach($activities as $activity)$push($activity->created_at,'Activity',$activity->action,$activity->lead,$activity->details ?: ($activity->kind ?: 'Activity'),$activity->actor);
   }
   $visits=LeadVisit::with('lead','user')->whereHas('lead',fn($query)=>$query->whereIn('id',$visibleLeads()->select('id')))->whereBetween('opened_at',[$start,$end])->when($selected,fn($query)=>$query->where('user_id',$selected))->get();

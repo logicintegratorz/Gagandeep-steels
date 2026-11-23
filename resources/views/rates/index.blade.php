@@ -9,12 +9,24 @@
     <title>{{ $editing ? 'Edit freight rate' : 'Freight rates' }} · Gagandeep Steels</title>
 
     <link rel="icon" href="{{ asset('images/gagandeep-steels-logo.png') }}" type="image/png">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css').'?v='.filemtime(public_path('css/app.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/feedback.css').'?v='.filemtime(public_path('css/feedback.css')) }}">
     <link rel="stylesheet" href="{{ asset('css/rate-directory.css').'?v='.filemtime(public_path('css/rate-directory.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/calculator.css').'?v='.filemtime(public_path('css/calculator.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/theme.css').'?v='.filemtime(public_path('css/theme.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css').'?v='.filemtime(public_path('css/dashboard.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-messages.css').'?v='.filemtime(public_path('css/dashboard-messages.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-messages-responsive.css').'?v='.filemtime(public_path('css/dashboard-messages-responsive.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-sent-bulk.css').'?v='.filemtime(public_path('css/dashboard-sent-bulk.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-sent-checkbox.css').'?v='.filemtime(public_path('css/dashboard-sent-checkbox.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-sent-header.css').'?v='.filemtime(public_path('css/dashboard-sent-header.css')) }}">
+    <link rel="stylesheet" href="{{ asset('css/workspace-messages.css').'?v='.filemtime(public_path('css/workspace-messages.css')) }}">
 
     <script src="{{ asset('js/app.js').'?v='.filemtime(public_path('js/app.js')) }}" defer></script>
     <script src="{{ asset('js/ui.js').'?v='.filemtime(public_path('js/ui.js')) }}" defer></script>
+    <script src="{{ asset('js/theme.js').'?v='.filemtime(public_path('js/theme.js')) }}" defer></script>
+    <script src="{{ asset('js/calculator.js').'?v='.filemtime(public_path('js/calculator.js')) }}" defer></script>
+    <script src="{{ asset('js/dashboard-messages.js').'?v='.filemtime(public_path('js/dashboard-messages.js')) }}" defer></script>
 <script src="{{ asset('js/rate-filters.js').'?v='.filemtime(public_path('js/rate-filters.js')) }}" defer></script><link rel="stylesheet" href="{{ asset('css/compact.css').'?v='.filemtime(public_path('css/compact.css')) }}"></head>
 
 <body>
@@ -26,31 +38,8 @@
 
 <main class="main" id="main">
 
-    <header class="topbar">
-        <div>
-            <button
-                class="icon-button mobile-toggle"
-                id="menu-toggle"
-                aria-label="Toggle navigation"
-                aria-expanded="false"
-                aria-controls="sidebar"
-            >
-                <x-icon name="menu"/>
-            </button>
-
-            <span>Workspace</span>
-
-            <x-icon name="chevron" size="13"/>
-
-            <strong>Freight rates</strong>
-        </div>
-
-        <span class="workspace-label">
-            Freight workspace
-        </span>
-
-        <x-notification-bell/>
-    </header>
+    <x-workspace-global-bar/>
+    <x-messages-popup/>
 
 
     <div class="content">
@@ -216,7 +205,7 @@
                         <input
                             id="origin"
                             name="origin"
-                            value="{{ old('origin', $editing?->origin) }}"
+                            value="{{ old('origin', old('rate_origin', session('rate_draft.origin', $editing?->origin))) }}"
                             placeholder="Origin"
                             maxlength="100"
                             required
@@ -236,7 +225,7 @@
                         <input
                             id="destination"
                             name="destination"
-                            value="{{ old('destination', $editing?->destination) }}"
+                            value="{{ old('destination', old('rate_destination', session('rate_draft.destination', $editing?->destination))) }}"
                             placeholder="Destination"
                             maxlength="100"
                             required
@@ -256,7 +245,7 @@
                         <input
                             id="price"
                             name="price"
-                            value="{{ old('price', $editing?->price) }}"
+                            value="{{ old('price', old('rate_price', session('rate_draft.price', $editing?->price))) }}"
                             placeholder="0.00"
                             inputmode="decimal"
                             pattern="[0-9]{1,9}(\.[0-9]{1,2})?"
@@ -287,21 +276,16 @@
                             <x-transporter-select
     id="transporter"
     :names="collect($transporters)->sort(fn($a, $b) => strcasecmp($a, $b))->values()->all()"
-    :selected="old('transporter', $editing?->transporter)"
+    :selected="old('transporter', session('new_transporter', $editing?->transporter))"
     :required="true"
     placeholder="Transporter"
 />
 
-                        @if(auth()->user()->allows('transporters.create'))
+                        @if(auth()->user()->allows('transporters.create') && auth()->user()->allows('leads.create'))
 
-                            <a
-                                class="field-help"
-                                href="{{ route('transporters.index') }}"
-                                target="_blank"
-                                rel="noopener"
-                            >
+                            <button type="button" class="field-help transporter-contact-trigger" data-open-transporter-contact>
                                 Add transporter ↗
-                            </a>
+                            </button>
 
                         @endif
 
@@ -316,7 +300,7 @@
                         <input
                             id="remarks"
                             name="remarks"
-                            value="{{ old('remarks', $editing?->remarks) }}"
+                            value="{{ old('remarks', old('rate_remarks', session('rate_draft.remarks', $editing?->remarks))) }}"
                             placeholder="Notes"
                             maxlength="1000"
                         >
@@ -947,8 +931,72 @@
 
 </dialog>
 
+@php
+    $transporterContactFields = ['name', 'company', 'phone', 'alt_phone', 'email', 'website', 'location', 'source', 'category', 'job_role', 'stage', 'priority', 'value', 'notes'];
+    $defaultTransporterJobRole = $jobRoles->first(fn ($jobRole) => mb_strtolower(trim($jobRole)) === 'transporter');
+@endphp
+<dialog id="transporter-contact-dialog" class="transporter-contact-dialog" aria-labelledby="transporter-contact-title" @if($errors->hasAny($transporterContactFields)) data-open-on-load @endif>
+    <div class="dialog-content">
+        <div class="transporter-contact-heading">
+            <div><h2 id="transporter-contact-title">Add transporter</h2><p>This uses the same contact fields. The transporter will also appear in Contacts.</p></div>
+            <button type="button" class="icon-button" data-close-transporter-contact aria-label="Close add transporter form">×</button>
+        </div>
+        @if($errors->hasAny($transporterContactFields))
+            <div class="lead-errors" role="alert">
+                <strong>Transporter save nahi hua.</strong>
+                @foreach($errors->getMessages() as $messages)
+                    @foreach($messages as $message)
+                        <p>{{ $message }}</p>
+                    @endforeach
+                @endforeach
+            </div>
+        @endif
+        <form method="POST" action="{{ route('transporters.contact.store') }}" class="transporter-contact-form">
+            @csrf
+            <input type="hidden" name="rate_origin" data-rate-draft="origin">
+            <input type="hidden" name="rate_destination" data-rate-draft="destination">
+            <input type="hidden" name="rate_price" data-rate-draft="price">
+            <input type="hidden" name="rate_remarks" data-rate-draft="remarks">
+            <label>Contact name *<input name="name" value="{{ old('name') }}" maxlength="255" required></label>
+            <label>Company / transporter name<input name="company" value="{{ old('company') }}" maxlength="255" placeholder="Defaults to contact name when blank"></label>
+            <label>WhatsApp number<input name="phone" value="{{ old('phone') }}" maxlength="60"></label>
+            <label>Alt number<input name="alt_phone" value="{{ old('alt_phone') }}" maxlength="60"></label>
+            <label>Contact email<input name="email" type="email" value="{{ old('email') }}" maxlength="255"></label>
+            <label>Website<input name="website" type="url" value="{{ old('website') }}" maxlength="500"></label>
+            <label>Location<input name="location" value="{{ old('location') }}" maxlength="255"></label>
+            <label>Source<input name="source" value="{{ old('source', 'Manual') }}" maxlength="100"></label>
+            <label>Category<input name="category" value="{{ old('category') }}" maxlength="100"></label>
+            <label>Job role *<select name="job_role" required><option value="" disabled @selected(!old('job_role', $defaultTransporterJobRole))>Select job role</option>@foreach($jobRoles as $jobRole)<option value="{{ $jobRole }}" @selected(old('job_role', $defaultTransporterJobRole) === $jobRole)>{{ $jobRole }}</option>@endforeach</select></label>
+            <label>Stage<select name="stage">@foreach(\App\Models\Lead::STAGES as $stage)<option value="{{ $stage }}" @selected(old('stage', 'New') === $stage)>{{ $stage }}</option>@endforeach</select></label>
+            <label>Priority<select name="priority">@foreach(['Low', 'Normal', 'High'] as $priority)<option value="{{ $priority }}" @selected(old('priority', 'Normal') === $priority)>{{ $priority }}</option>@endforeach</select></label>
+            <label>Estimated value<input name="value" type="number" min="0" step="0.01" value="{{ old('value') }}"></label>
+            <label class="transporter-contact-notes">Notes<textarea name="notes" rows="1" maxlength="20000">{{ old('notes') }}</textarea></label>
+            <div class="dialog-actions"><button type="button" class="button secondary" data-close-transporter-contact>Cancel</button><button class="button primary">Save transporter</button></div>
+        </form>
+    </div>
+</dialog>
+
 
 <x-toasts/>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const dialog = document.getElementById('transporter-contact-dialog');
+    if (!dialog) return;
+    const open = () => dialog.showModal();
+    document.querySelectorAll('[data-open-transporter-contact]').forEach(button => button.addEventListener('click', open));
+    dialog.querySelectorAll('[data-close-transporter-contact]').forEach(button => button.addEventListener('click', () => dialog.close()));
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    dialog.querySelector('.transporter-contact-form')?.addEventListener('submit', () => {
+        const rateForm = document.getElementById('rate-form');
+        if (!rateForm) return;
+        dialog.querySelectorAll('[data-rate-draft]').forEach(input => {
+            input.value = rateForm.elements[input.dataset.rateDraft]?.value || '';
+        });
+    });
+    if (dialog.hasAttribute('data-open-on-load')) open();
+});
+</script>
 
 
 <style>

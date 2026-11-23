@@ -6,5 +6,5 @@
         <p class="auth-note">Need help signing in? Contact your administrator.</p>
         <button class="button primary" type="submit">Sign in</button>
     </form>
-    <p class="auth-note">For your security, sign-in expires at midnight (India time) or after 30 minutes without activity.</p>
+    <p class="auth-note">For your security, sign-in expires at midnight (India time) or after the inactivity limit set by your administrator.</p>
 </x-auth-layout>

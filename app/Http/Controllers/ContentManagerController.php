@@ -14,6 +14,7 @@ final class ContentManagerController
 
     public function index(Request $request)
     {
+        $this->view($request);
         $filters = $request->validate([
             'tab' => ['nullable', Rule::in(self::TABS)],
             'q' => ['nullable', 'string', 'max:150'],
@@ -37,7 +38,7 @@ final class ContentManagerController
 
     public function store(Request $request)
     {
-        $this->admin($request);
+        $this->manage($request);
         $data = $this->data($request, true);
         $file = $data['attachment'];
         unset($data['attachment']);
@@ -54,7 +55,7 @@ final class ContentManagerController
 
     public function update(Request $request, ContentDocument $document)
     {
-        $this->admin($request);
+        $this->manage($request);
         $data = $this->data($request, false) + $request->validate(['version' => ['required', 'integer', 'min:1']]);
         $file = $data['attachment'] ?? null;
         unset($data['attachment'], $data['version']);
@@ -73,7 +74,7 @@ final class ContentManagerController
 
     public function destroy(Request $request, ContentDocument $document)
     {
-        $this->admin($request);
+        $this->manage($request);
         $data = $request->validate(['version' => ['required', 'integer', 'min:1']]);
         DB::transaction(function () use ($document, $data) {
             $current = ContentDocument::lockForUpdate()->findOrFail($document->id);
@@ -86,6 +87,7 @@ final class ContentManagerController
 
     public function open(Request $request, ContentDocument $document)
     {
+        $this->view($request);
         abort_unless(Storage::exists($document->attachment_path), 404);
         return response()->file(Storage::path($document->attachment_path), [
             'Content-Type' => $document->attachment_mime ?: 'application/octet-stream',
@@ -95,6 +97,7 @@ final class ContentManagerController
 
     public function download(Request $request, ContentDocument $document)
     {
+        $this->view($request);
         abort_unless(Storage::exists($document->attachment_path), 404);
         return Storage::download($document->attachment_path, $document->attachment_name);
     }
@@ -109,5 +112,13 @@ final class ContentManagerController
         ]);
     }
 
-    private function admin(Request $request): void { abort_unless($request->user()->isAdmin(), 403); }
+    private function view(Request $request): void
+    {
+        abort_unless($request->user()->allows('content.view') || $request->user()->allows('content.manage'), 403);
+    }
+
+    private function manage(Request $request): void
+    {
+        abort_unless($request->user()->allows('content.manage'), 403);
+    }
 }

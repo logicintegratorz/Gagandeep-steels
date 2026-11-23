@@ -28,11 +28,39 @@ mkdir -p storage/framework/cache storage/framework/sessions storage/framework/vi
 chmod -R ug+rw storage bootstrap/cache
 
 # The temporary Hostinger domain points at public_html while Laravel is kept in
-# crmapp. Copy only public assets and repoint the front controller to crmapp.
+# crmapp. Older deployments can have a real storage directory in either public
+# location. Preserve its contents, then remove it before copying assets.
+normalize_storage_directory() {
+  local path="$1"
+  local label="$2"
+
+  if [[ -L "$path" ]]; then
+    rm -f "$path"
+  elif [[ -e "$path" ]]; then
+    local stamp legacy
+    stamp=$(date +%Y%m%d-%H%M%S)
+    legacy="$APP_ROOT/storage/app/legacy-${label}-storage-$stamp"
+    mkdir -p "$APP_ROOT/storage/app/public" "$APP_ROOT/storage/app"
+    if [[ -d "$path" ]]; then
+      cp -a "$path/." "$APP_ROOT/storage/app/public/"
+    fi
+    mv "$path" "$legacy"
+    echo "Migrated prior ${label}/storage to $legacy"
+  fi
+}
+
 mkdir -p "$PUBLIC_ROOT"
+normalize_storage_directory "$APP_ROOT/public/storage" "app-public"
+normalize_storage_directory "$PUBLIC_ROOT/storage" "public-html"
+
 cp -a public/. "$PUBLIC_ROOT/"
 sed -i "s#'/../vendor/#'/../crmapp/vendor/#; s#'/../bootstrap/#'/../crmapp/bootstrap/#" "$PUBLIC_ROOT/index.php"
 "$PHP_BIN" artisan storage:link || true
+
+# Hostinger serves public_html (not crmapp/public), therefore mirror Laravel's
+# public storage link there after assets are copied.
+normalize_storage_directory "$PUBLIC_ROOT/storage" "public-html"
+ln -s "$APP_ROOT/storage/app/public" "$PUBLIC_ROOT/storage"
 "$PHP_BIN" artisan optimize:clear
 "$PHP_BIN" artisan config:cache
 "$PHP_BIN" artisan route:cache

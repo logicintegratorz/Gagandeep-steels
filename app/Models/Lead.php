@@ -21,7 +21,7 @@ final class Lead extends Model {
   });
   static::restored(fn(Lead $lead)=>\App\Models\LeadSourceEvent::where('lead_id',$lead->id)->update(['deleted_at'=>null]));
  }
- protected function casts(): array {return ['value'=>'decimal:2','version'=>'integer','claimed_at'=>'datetime','untouched_archived_at'=>'datetime','stage_changed_at'=>'datetime'];}
+ protected function casts(): array {return ['value'=>'decimal:2','version'=>'integer','claimed_at'=>'datetime','contact_saved_at'=>'datetime','untouched_archived_at'=>'datetime','stage_changed_at'=>'datetime'];}
  public function creator(){return $this->belongsTo(User::class,'created_by');}
  public function getInitialsAttribute():string {return collect(preg_split('/\s+/u',trim($this->name)))->filter()->take(2)->map(fn($word)=>mb_strtoupper(mb_substr($word,0,1)))->implode('');}
  public function owner(){return $this->belongsTo(User::class,'owner_id');}

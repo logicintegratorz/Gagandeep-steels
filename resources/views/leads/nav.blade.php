@@ -15,7 +15,7 @@
  <a class="button secondary {{ request()->routeIs('lead-groups.*') ? 'is-active' : '' }}" href="{{ route('lead-groups.index') }}">Lead Lists</a>
  @if(auth()->user()->allows('leads.lists'))<a class="button secondary {{ $listsNav ? 'is-active' : '' }}" href="{{ route('leads.lists') }}" @if($listsNav) aria-current="page" @endif>List Manager</a>@endif
  @if(auth()->user()->allows('leads.tasks') || auth()->user()->allows('leads.followups') || auth()->user()->allows('leads.reminders'))<a class="button secondary {{ $workNav ? 'is-active' : '' }}" href="{{ route('leads.work') }}" @if($workNav) aria-current="page" @endif>Follow-ups, Tasks &amp; Reminders</a>@endif
- @if(auth()->user()->allows('leads.create'))<a class="button secondary {{ $createNav ? 'is-active' : '' }}" href="{{ route('leads.create') }}" @if($createNav) aria-current="page" @endif>Add lead</a>@endif
+ @if(auth()->user()->allows('leads.create'))<a class="button secondary {{ $createNav ? 'is-active' : '' }}" href="{{ route('leads.create') }}" @if($createNav) aria-current="page" @endif>Add contact</a>@endif
  @if(auth()->user()->isAdmin())
  <a class="button secondary {{ $jobRolesNav ? 'is-active' : '' }}" href="{{ route('leads.job-roles') }}" @if($jobRolesNav) aria-current="page" @endif>Job Rolls</a>
  <a class="button secondary {{ $settingsNav ? 'is-active' : '' }}" href="{{ route('leads.settings') }}" @if($settingsNav) aria-current="page" @endif>Lead settings</a>

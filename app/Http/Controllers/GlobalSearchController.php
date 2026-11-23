@@ -44,6 +44,8 @@ final class GlobalSearchController
             }
         }
 
-        return view('global-search.index', compact('term', 'leads', 'products'));
+        $savedContacts = $leads->whereNull('connection_id')->count();
+
+        return view('global-search.index', compact('term', 'leads', 'products', 'savedContacts'));
     }
 }

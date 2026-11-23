@@ -82,6 +82,7 @@ final class AccessController
             'phone' => ['bail','nullable','required_without:email','string','min:7','max:20','regex:/^[0-9]+$/',Rule::unique('users')->ignore($user?->id)],
             'avatar' => ['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
             'active' => ['required','boolean'], 'role_id' => [$user ? 'sometimes' : 'required','integer','exists:roles,id'],
+            'inactivity_timeout_minutes' => ['required','integer','min:1','max:1440'],
             'password' => [$user ? 'nullable' : 'required','confirmed','max:255',PasswordRule::min(8)->letters()->numbers()],
             'version' => [$user ? 'required' : 'sometimes','integer','min:1'],
         ]);

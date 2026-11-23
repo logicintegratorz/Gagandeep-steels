@@ -10,7 +10,7 @@
   const exit = (broadcast = true) => {
     if (exited) return;
     exited = true;
-    try { sessionStorage.setItem('crm-session-notice', 'Your session ended. Please sign in again. Sessions expire at midnight or after 30 minutes of inactivity.'); } catch {}
+    try { sessionStorage.setItem('crm-session-notice', 'Your session ended due to inactivity. Please sign in again.'); } catch {}
     if (broadcast) channel?.postMessage({ logout: true });
     document.body.replaceChildren();
     location.replace(config.dataset.loginUrl);

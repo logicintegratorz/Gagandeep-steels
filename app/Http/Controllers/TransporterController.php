@@ -3,9 +3,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Transporter;
 use App\Models\FreightRate;
+use App\Models\Lead;
+use App\Support\LeadIdentity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 final class TransporterController
@@ -54,6 +57,82 @@ final class TransporterController
             throw ValidationException::withMessages(['name' => 'This transporter already exists.']);
         }
         return redirect()->route('transporters.index')->with('success', 'Transporter added. You can now select it on the freight form.');
+    }
+
+    /** Create a transport partner and its CRM contact from the shared contact form. */
+    public function storeContact(Request $request)
+    {
+        abort_unless($request->user()->allows('leads.create'), 403);
+
+        $rateDraft = $request->validate([
+            'rate_origin' => ['nullable', 'string', 'max:100'],
+            'rate_destination' => ['nullable', 'string', 'max:100'],
+            'rate_price' => ['nullable', 'string', 'max:12'],
+            'rate_remarks' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'company' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:60'],
+            'alt_phone' => ['nullable', 'string', 'max:60'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'website' => ['nullable', 'url:http,https', 'max:500'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'source' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'job_role' => ['required', Rule::exists('job_roles', 'name')],
+            'stage' => ['required', Rule::in(Lead::STAGES)],
+            'priority' => ['required', Rule::in(['Low', 'Normal', 'High'])],
+            'value' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'notes' => ['nullable', 'string', 'max:20000'],
+        ]);
+
+        $data = collect($data)->map(fn ($value) => is_string($value) ? trim($value) : $value)->all();
+        $transporterName = $data['company'] ?: $data['name'];
+
+        try {
+            DB::transaction(function () use ($request, $data, $transporterName) {
+                Transporter::create([
+                    'name' => $transporterName,
+                    'contact_person' => $data['name'],
+                    'phone' => $data['phone'] ?: $data['alt_phone'],
+                    'address' => $data['location'] ?: null,
+                ]);
+
+                $contact = new Lead([
+                    ...$data,
+                    'company' => $data['company'] ?: $transporterName,
+                    'source' => $data['source'] ?? null,
+                    'category' => $data['category'] ?? null,
+                    'contact_saved_at' => now(),
+                    'created_by' => $request->user()->id,
+                    'owner_id' => $request->user()->id,
+                    'version' => 1,
+                ]);
+                [$contact->identity_phone, $contact->identity_profile] = LeadIdentity::keys($contact->name, $contact->company, $contact->phone, $contact->location);
+                $contact->save();
+                LeadIdentity::attachPrevious($contact);
+                $contact->activities()->create([
+                    'actor' => $request->user()->name,
+                    'actor_id' => $request->user()->id,
+                    'action' => 'Transporter contact created',
+                    'details' => 'Transporter: '.$transporterName,
+                ]);
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            throw ValidationException::withMessages(['company' => 'This transporter already exists.']);
+        }
+
+        return redirect()->route('rates.index')
+            ->with('success', 'Transporter and contact added. It is selected for this freight rate.')
+            ->with('new_transporter', $transporterName)
+            ->with('rate_draft', [
+                'origin' => $rateDraft['rate_origin'] ?? null,
+                'destination' => $rateDraft['rate_destination'] ?? null,
+                'price' => $rateDraft['rate_price'] ?? null,
+                'remarks' => $rateDraft['rate_remarks'] ?? null,
+            ]);
     }
 
     public function update(Request $request, Transporter $transporter)

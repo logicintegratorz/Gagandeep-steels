@@ -1,0 +1,41 @@
+/* Keep the role permission picker dense without making controls hard to use. */
+.permission-grid {
+    gap: 10px;
+}
+
+.permission-grid fieldset {
+    padding: 9px 11px;
+}
+
+.permission-grid legend {
+    padding: 0 4px;
+    font-size: 12px;
+}
+
+.permission-check {
+    gap: 7px;
+    min-height: 27px;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+.permission-check input[type="checkbox"] {
+    width: 15px;
+    min-width: 15px;
+    height: 15px;
+    min-height: 15px;
+}
+
+.permission-check span small {
+    font-size: 10px;
+}
+
+@media (max-width: 650px) {
+    .permission-grid {
+        gap: 8px;
+    }
+
+    .permission-grid fieldset {
+        padding: 8px 9px;
+    }
+}

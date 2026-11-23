@@ -33,7 +33,7 @@ final class StorageOverviewController
             ['label' => 'Reminders', 'count' => LeadWorkItem::where('kind', 'Reminder')->count(), 'icon' => 'bell', 'url' => route('leads.work', ['kind' => 'Reminder'])],
             ['label' => 'Follow-ups', 'count' => LeadWorkItem::where('kind', 'Follow-up')->count(), 'icon' => 'check', 'url' => route('leads.work', ['kind' => 'Follow-up'])],
             ['label' => 'Chats', 'count' => DirectMessage::count(), 'icon' => 'chat', 'url' => route('chat.index')],
-            ['label' => 'Contacts', 'count' => Lead::whereNotNull('contact_saved_at')->count(), 'icon' => 'users', 'url' => route('home').'#contacts-table'],
+            ['label' => 'Contacts', 'count' => Lead::whereNull('connection_id')->count(), 'icon' => 'users', 'url' => route('contacts.index')],
             ['label' => 'Call logs', 'count' => LeadActivity::where('kind', 'Call log')->count(), 'icon' => 'call-log', 'url' => route('leads.index')],
             ['label' => 'Lead lists', 'count' => LeadList::count(), 'icon' => 'menu', 'url' => route('lead-groups.index')],
             ['label' => 'Product images', 'count' => $productImagePaths->count(), 'icon' => 'document', 'bytes' => $productImageBytes, 'url' => route('products.index')],

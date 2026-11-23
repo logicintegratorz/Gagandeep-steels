@@ -2,6 +2,8 @@
 namespace Tests\Feature;
 
 use App\Models\FreightRate;
+use App\Models\JobRole;
+use App\Models\Lead;
 use App\Models\Transporter;
 use Tests\TestCase;
 
@@ -67,6 +69,47 @@ final class TransporterTest extends TestCase
             ->assertViewHas('transporterCount', 1);
         $this->get(route('transporters.index'))->assertOk()->assertSee('Punjab Transport');
         $this->getJson(route('transporters.options'))->assertOk()->assertExactJson(['Punjab Transport']);
+    }
+
+    public function test_contact_form_creates_a_transporter_and_a_visible_manual_contact(): void
+    {
+        $jobRole = JobRole::query()->value('name');
+        $this->assertNotNull($jobRole);
+
+        $this->post(route('transporters.contact.store'), [
+            'name' => 'Harpreet Singh',
+            'company' => 'Gagandeep Roadlines',
+            'phone' => '9876543210',
+            'alt_phone' => '9123456789',
+            'email' => 'dispatch@example.test',
+            'location' => 'Ludhiana',
+            'job_role' => $jobRole,
+            'stage' => 'New',
+            'priority' => 'Normal',
+            'notes' => 'Created from freight rates.',
+        ])->assertRedirect(route('rates.index'))
+            ->assertSessionHas('new_transporter', 'Gagandeep Roadlines');
+
+        $this->assertDatabaseHas('transporters', [
+            'name' => 'Gagandeep Roadlines',
+            'contact_person' => 'Harpreet Singh',
+            'phone' => '9876543210',
+            'address' => 'Ludhiana',
+        ]);
+        $this->assertDatabaseHas('leads', [
+            'name' => 'Harpreet Singh',
+            'company' => 'Gagandeep Roadlines',
+            'source' => null,
+        ]);
+        $this->get(route('contacts.index'))
+            ->assertOk()
+            ->assertSee('Harpreet Singh')
+            ->assertSee('Gagandeep Roadlines');
+        $this->assertSame('Gagandeep Roadlines', Transporter::query()->sole()->name);
+        $contact = Lead::query()->sole();
+        $this->assertSame('Harpreet Singh', $contact->name);
+        $this->assertNotNull($contact->contact_saved_at);
+        $this->assertNull($contact->category);
     }
 
     public function test_duplicate_blank_and_overlong_names_are_rejected(): void

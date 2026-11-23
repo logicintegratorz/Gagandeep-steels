@@ -12,7 +12,7 @@ final class DashboardMetricController
         $labels = [
             'todays-leads' => 'Today’s Leads', 'uncontacted-leads' => 'Uncontacted Leads',
             'opened-leads' => 'Opened Leads', 'converted-leads' => 'Converted Leads',
-            'site-visits' => 'Site Visits', 'manual-leads' => 'Manual Leads',
+            'site-visits' => 'Site Visits', 'platform-leads' => 'Platform Leads',
             'overdue-tasks' => 'Overdue Tasks', 'my-tasks' => 'My Tasks',
             'my-overdue-tasks' => 'My Overdue Tasks', 'initial-contact' => 'Initial Contact',
             'enquiry-confirmed' => 'Enquiry Confirmed', 'negotiation' => 'Negotiation',
@@ -97,7 +97,7 @@ final class DashboardMetricController
                 'opened-leads' => $query->whereNotIn('stage', ['Won', 'Lost']),
                 'converted-leads' => $query->where('stage', 'Won'),
                 'site-visits', 'site-approval' => $query->where('stage', 'Site Approval'),
-                'manual-leads' => $query->whereNull('connection_id'),
+                'platform-leads' => $query,
                 default => $query->where('stage', $labels[$metric]),
             };
         }

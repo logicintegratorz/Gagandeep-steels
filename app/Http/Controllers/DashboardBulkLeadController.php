@@ -10,7 +10,7 @@ use Illuminate\Validation\Rule;
 
 final class DashboardBulkLeadController
 {
-    private const ACTIONS=['call','email','whatsapp','sms','reminder','note','opportunity','contact','list','user','stage','category','delete','feedback'];
+    private const ACTIONS=['call','email','whatsapp','sms','reminder','note','opportunity','list','user','stage','category','delete','feedback'];
 
     public function __invoke(Request $request)
     {
@@ -41,7 +41,7 @@ final class DashboardBulkLeadController
             'reminder'=>'leads.reminders',
             'feedback'=>'leads.followups',
             'opportunity','stage'=>'leads.stage',
-            'contact','category'=>'leads.edit',
+            'category'=>'leads.edit',
             'list'=>'leads.lists',
             'user'=>'leads.assign',
             'delete'=>'leads.delete',
@@ -78,7 +78,6 @@ final class DashboardBulkLeadController
             'feedback'=>$this->work($request,$lead,'Follow-up',$data),
             'note'=>$this->record($request,$lead,'Note',$data['title']?:'Note',$data['details']),
             'opportunity'=>$this->opportunity($request,$lead,$data),
-            'contact'=>$this->contact($request,$lead),
             'list'=>$this->list($request,$lead,$data['group_id']),
             'user'=>$this->owner($request,$lead,$data['owner_id']),
             'stage'=>$this->stage($request,$lead,$data['stage']),
@@ -102,9 +101,6 @@ final class DashboardBulkLeadController
     private function opportunity(Request $request,Lead $lead,array $data):void
     {abort_unless($request->user()->allows('leads.stage'),403);$old=$lead->stage;$lead->stage=$data['stage'];if(array_key_exists('value',$data))$lead->value=$data['value'];$lead->version++;$lead->save();$this->record($request,$lead,'System','Opportunity created',$old.' → '.$lead->stage.(filled($lead->value)?' · Value '.$lead->value:'').(filled($data['details']??null)?' · '.$data['details']:''));}
 
-    private function contact(Request $request,Lead $lead):void
-    {abort_unless($request->user()->isAdmin()||$request->user()->allows('leads.edit'),403);if($lead->contact_saved_at)return;$lead->contact_saved_at=now();$lead->version++;$lead->save();$this->record($request,$lead,'System','Saved as contact');}
-
     private function list(Request $request,Lead $lead,int $id):void
     {abort_unless($request->user()->allows('leads.lists'),403);$group=LeadGroup::where('created_by',$request->user()->id)->findOrFail($id);if($group->leads()->syncWithoutDetaching([$lead->id])['attached'])$this->record($request,$lead,'System','Added to lead list',$group->name);}
 
@@ -112,7 +108,7 @@ final class DashboardBulkLeadController
     {abort_unless($request->user()->isAdmin()||$request->user()->allows('leads.assign'),403);$owner=User::where('active',true)->findOrFail($id);abort_unless($owner->allows('leads.view'),422);if($lead->owner_id===$owner->id)return;$old=$lead->owner?->name??'Unassigned';$lead->owner_id=$owner->id;$lead->version++;$lead->save();$this->record($request,$lead,'System','Lead assigned',$old.' → '.$owner->name);}
 
     private function stage(Request $request,Lead $lead,string $stage):void
-    {abort_unless($request->user()->allows('leads.stage'),403);if($lead->stage===$stage)return;$old=$lead->stage;$lead->stage=$stage;if($stage==='Won'&&!$lead->contact_saved_at)$lead->contact_saved_at=now();$lead->version++;$lead->save();$this->record($request,$lead,'System','Stage changed',$old.' → '.$stage);}
+    {abort_unless($request->user()->allows('leads.stage'),403);if($lead->stage===$stage)return;$old=$lead->stage;$lead->stage=$stage;$lead->version++;$lead->save();$this->record($request,$lead,'System','Stage changed',$old.' → '.$stage);}
 
     private function category(Request $request,Lead $lead,string $category):void
     {abort_unless($request->user()->allows('leads.edit'),403);$old=$lead->category?:'Not set';if($old===$category)return;$lead->category=$category;$lead->version++;$lead->save();$this->record($request,$lead,'System','Category changed',$old.' → '.$category);}

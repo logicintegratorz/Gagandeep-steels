@@ -51,7 +51,7 @@
                           rows="5"
                           maxlength="2000"
                           required
-                          placeholder="Write a clear message for your team…">{{ old('message') }}</textarea>
+                          placeholder="Write a message for your team…">{{ old('message') }}</textarea>
 
                 <small class="cell-note">Up to 2,000 characters.</small>
             </label>

@@ -1,0 +1,47 @@
+/* Keep the Messages popup usable at every manually chosen size. */
+.dashboard-messages-dialog{width:min(575px,calc(100vw - 32px))!important;height:min(620px,calc(100dvh - 32px))!important;min-width:320px!important;min-height:240px!important;max-width:calc(100vw - 32px)!important;max-height:calc(100dvh - 32px)!important;border-radius:14px!important}.dashboard-messages-card{border-radius:inherit;overflow:auto}
+.dashboard-messages-card>header{min-height:44px;padding:8px 14px;align-items:center}
+.dashboard-messages-card>header h2{font-size:20px;line-height:1.15}
+.dashboard-messages-card>header .icon-button{width:30px;min-width:30px;height:30px;min-height:30px}
+.dashboard-message-composer{padding:10px 14px}
+.dashboard-sent-messages{padding:10px 14px}
+.dashboard-messages-card{display:flex;flex-direction:column;overflow:hidden}
+.dashboard-messages-card>header,.dashboard-message-composer{flex:0 0 auto}
+.dashboard-sent-messages{flex:1 1 auto;min-height:0;overflow:auto}
+.dashboard-sent-messages article{grid-template-columns:minmax(0,1fr) repeat(4,auto)}
+.dashboard-sent-messages article>form[data-sent-dismiss] .button::before{content:'⊘';font-size:18px}.dashboard-sent-messages article>form[data-sent-dismiss] .button{color:#6a7180!important;border-color:#cfd6e1!important}
+.dashboard-sent-messages article>form[data-sent-resend] .button::before{content:'↻';font-size:18px}.dashboard-sent-messages article>form[data-sent-delete] .button::before{content:'🗑';font-size:15px}.dashboard-sent-messages article>form[data-sent-delete] .button{color:#c52d3a!important;border-color:#efc5ca!important}
+.dashboard-message-status{display:inline-flex;align-items:center;margin-left:7px;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;line-height:1.2;vertical-align:middle}.dashboard-message-status.is-ongoing{color:#087948;background:#e8f8ef}.dashboard-message-status.is-dismissed{color:#687386;background:#eef1f5}
+.dashboard-message-send-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;min-width:0;gap:12px;align-items:center}
+.dashboard-recipient-picker{display:contents}
+.dashboard-recipient-picker>span{white-space:nowrap;font-size:12px;font-weight:700}
+.dashboard-recipient-picker details{position:relative;min-width:0}
+.dashboard-message-send-row .dashboard-recipient-picker summary{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:38px;box-sizing:border-box}
+.dashboard-message-send-row .dashboard-recipient-picker summary::after{position:absolute!important;right:11px;top:50%;display:grid!important;place-items:center;width:16px;height:16px;margin:0;line-height:1!important;transform:translateY(-50%)!important}
+.dashboard-message-send-row .dashboard-recipient-picker summary{position:relative!important;padding-right:38px!important;list-style:none!important}.dashboard-message-send-row .dashboard-recipient-picker summary::-webkit-details-marker{display:none!important}.dashboard-message-send-row .dashboard-recipient-picker summary::marker{content:''!important;font-size:0!important}.dashboard-message-send-row .dashboard-recipient-picker summary::after{content:''!important;display:block!important;width:7px!important;height:7px!important;border-right:1.8px solid currentColor;border-bottom:1.8px solid currentColor;transform:translateY(-65%) rotate(45deg)!important}
+.dashboard-message-send-row .button{min-width:0;padding-inline:16px;white-space:nowrap}
+
+@container (max-width:540px){
+  .dashboard-message-composer,.dashboard-sent-messages{padding:9px 10px}
+  .dashboard-message-send-row{grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center}
+  .dashboard-message-send-row .button{width:auto;min-height:34px;padding-inline:10px}
+  .dashboard-sent-messages article{grid-template-columns:minmax(0,1fr) repeat(4,auto);gap:5px;padding-block:9px}
+  .dashboard-sent-messages article>div{min-width:0}
+  .dashboard-sent-messages article>div p,.dashboard-sent-messages article>div small{overflow-wrap:anywhere}
+  .dashboard-sent-messages .button,.dashboard-message-controls .button,.dashboard-message-controls summary.button{width:30px;min-width:30px;height:30px;min-height:30px}
+}
+
+@container (max-width:390px){
+  .dashboard-messages-card>header{padding:7px 9px}
+  .dashboard-messages-card>header h2{font-size:18px}
+  .dashboard-message-composer,.dashboard-sent-messages{padding:8px}
+  .dashboard-sent-messages article{grid-template-columns:minmax(0,1fr) repeat(4,auto)}
+  .dashboard-sent-messages article>div{grid-template-columns:20px minmax(0,1fr)}
+  .dashboard-sent-messages h3{font-size:14px}
+  .dashboard-message-send-row{gap:4px}
+  .dashboard-message-send-row .button{padding-inline:8px}
+}
+
+@media (max-width:620px){
+  .dashboard-message-resize{display:block}
+}

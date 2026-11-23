@@ -31,7 +31,11 @@
                 <a href="{{ route('leads.show', $record) }}"><strong>{{ $record->name }}</strong></a>
                 <p>{{ $record->company ?: 'No company' }} · {{ $record->stage }} · {{ $record->owner?->name ?? 'Unassigned' }}</p>
             @elseif($type === 'work')
-                <a href="{{ route('leads.show', $record->lead_id) }}#lead-work"><strong>{{ $record->title }}</strong></a>
+                @if($record->lead)
+                    <a href="{{ route('leads.show', $record->lead) }}#lead-work"><strong>{{ $record->title }}</strong></a>
+                @else
+                    <strong>{{ $record->title }}</strong>
+                @endif
                 <p>{{ $record->kind }} · {{ $record->lead?->name ?? 'Lead unavailable' }} · {{ $record->assignee?->name ?? 'Unassigned' }} · {{ $record->due_at->format('d M Y H:i') }} IST</p>
             @else
                 @php($callLabel = $record->call_direction === 'Missed call' ? 'Missed call' : $record->call_direction.' call')

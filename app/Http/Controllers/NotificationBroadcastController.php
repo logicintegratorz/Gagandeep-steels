@@ -28,7 +28,9 @@ final class NotificationBroadcastController
         $this->requireAdministrator($request);
         foreach (['title','message'] as $field) if (is_string($request->input($field))) $request->merge([$field=>trim($request->input($field))]);
         $data = $request->validate([
-            'submission_key'=>['required','uuid'], 'title'=>['nullable','string','max:120'], 'message'=>['required','string','max:2000'],
+            'submission_key'=>['required','uuid'],
+            'title'=>['nullable','string','max:120','required_without:message'],
+            'message'=>['nullable','string','max:2000','required_without:title'],
             'audience'=>['required',Rule::in(['all','roles','users'])],
             'recipient_id'=>['nullable','integer','exists:users,id'],
             'role_ids'=>['exclude_unless:audience,roles','required','array','min:1','max:500'],
@@ -41,6 +43,7 @@ final class NotificationBroadcastController
             $data['user_ids'] = [(int) $data['recipient_id']];
         }
         $data['title'] = $data['title'] ?? '';
+        $data['message'] = $data['message'] ?? '';
         if ($existing = NotificationBroadcast::where('submission_key',$data['submission_key'])->first()) return $this->alreadySent($request,$existing);
         try {
             $count = DB::transaction(function () use ($request,$data) {
@@ -90,8 +93,12 @@ final class NotificationBroadcastController
     {
         $this->requireAdministrator($request);
         foreach (['title','message'] as $field) if (is_string($request->input($field))) $request->merge([$field => trim($request->input($field))]);
-        $data = $request->validate(['title'=>['nullable','string','max:120'], 'message'=>['required','string','max:2000']]);
+        $data = $request->validate([
+            'title'=>['nullable','string','max:120','required_without:message'],
+            'message'=>['nullable','string','max:2000','required_without:title'],
+        ]);
         $data['title'] = $data['title'] ?? '';
+        $data['message'] = $data['message'] ?? '';
         DB::transaction(function () use ($broadcast, $data) {
             $broadcast->update($data);
             CrmNotification::where('broadcast_id', $broadcast->id)->update([

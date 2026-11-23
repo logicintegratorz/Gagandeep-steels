@@ -7,5 +7,5 @@ final class LeadWorkItem extends Model {
  protected function casts(): array {return ['due_at'=>'datetime','completed_at'=>'datetime','notified_at'=>'datetime','version'=>'integer','recurring'=>'boolean','attachment_size'=>'integer'];}
  public function assignee(){return $this->belongsTo(User::class,'assigned_to');}
  public function lead(){return $this->belongsTo(Lead::class);}
- public function scopeVisibleTo($query,User $user){$query->whereHas('lead');return $user->isAdmin()?$query:$query->where('assigned_to',$user->id);}
+ public function scopeVisibleTo($query,User $user){return $user->isAdmin()?$query:$query->where('assigned_to',$user->id);}
 }

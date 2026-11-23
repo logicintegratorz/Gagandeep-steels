@@ -1,0 +1,16 @@
+<x-app-layout title="Settings">
+    <section class="panel settings-page">
+        <div class="settings-links">
+            <a class="settings-link" href="{{ route('sidebar-groups.index') }}"><x-icon name="menu"/><span><strong>Sidebar Group</strong><small>Organize and manage sidebar navigation groups.</small></span><x-icon name="chevron" size="18"/></a>
+            <a class="settings-link" href="{{ route('activities.index') }}"><x-icon name="task-list"/><span><strong>Activities</strong><small>Review and manage CRM activities.</small></span><x-icon name="chevron" size="18"/></a>
+            <a class="settings-link" href="{{ route('access.index') }}"><x-icon name="users"/><span><strong>Users &amp; Permissions</strong><small>Manage user access and permission roles.</small></span><x-icon name="chevron" size="18"/></a>
+            <a class="settings-link" href="{{ route('storage.index') }}"><x-icon name="box"/><span><strong>Storage Overview</strong><small>Review workspace storage usage.</small></span><x-icon name="chevron" size="18"/></a>
+            <a class="settings-link" href="{{ route('screen-time.index') }}"><x-icon name="screen"/><span><strong>Screen Time Report</strong><small>View CRM usage and screen-time activity.</small></span><x-icon name="chevron" size="18"/></a>
+            <a class="settings-link" href="{{ route('products.logs') }}"><x-icon name="document"/><span><strong>Global Log Sheet</strong><small>Review product and pricing change history.</small></span><x-icon name="chevron" size="18"/></a>
+            <a class="settings-link settings-account" href="{{ route('account.index') }}"><x-icon name="lock"/><span><strong>My Account</strong><small>Manage your profile and account security.</small></span><x-icon name="chevron" size="18"/></a>
+        </div>
+    </section>
+    <style>
+        .settings-page{width:100%;max-width:none;min-height:0;margin:0;padding:22px!important;box-sizing:border-box}.settings-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;width:100%}.settings-link{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr) 26px;align-items:center;gap:12px;min-height:84px;padding:14px;border:1px solid #d7e3f2;border-radius:11px;color:var(--ink,#152c4f);text-decoration:none;overflow:hidden;background:linear-gradient(135deg,#fff,#f7fbff);box-shadow:0 7px 18px #173c700a}.settings-link::after{content:'';position:absolute;bottom:0;left:0;width:46%;height:4px;border-radius:0 4px 0 11px;background:#10a9f5}.settings-link:hover{border-color:#9dc6f4;box-shadow:0 10px 24px #173c7018;transform:translateY(-2px)}.settings-link>svg:first-child{width:42px;height:42px;padding:10px;box-sizing:border-box;border-radius:12px;background:linear-gradient(135deg,#edf5ff,#d9ebff);color:#075cc9}.settings-link>svg:last-child{width:26px;height:26px;padding:6px;box-sizing:border-box;border:1px solid #cfe1f8;border-radius:50%;color:#075cc9}.settings-link span{display:grid;gap:4px}.settings-link strong{font-size:15px}.settings-link small{color:var(--muted,#607088);line-height:1.3;font-size:12px}@media(max-width:900px){.settings-links{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){.settings-page{padding:14px!important}.settings-links{grid-template-columns:1fr}}
+    </style>
+</x-app-layout>

@@ -1,0 +1,4 @@
+<div class="productivity-item-actions">
+ @if(auth()->user()->allows("productivity.$permissionModule.edit"))<button type="button" class="icon-button" title="Edit" aria-label="Edit {{ $item->title }}" data-productivity-edit data-update-url="{{ route('productivity.update', [$module, $item]) }}" data-title="{{ $item->title }}" data-message="{{ $item->message }}" data-scheduled-at="{{ $item->scheduled_at?->format('Y-m-d\\TH:i') }}" data-priority="{{ $item->priority }}" data-assignees="{{ $item->assignees->pluck('id')->implode(',') }}">✎</button>@endif
+ @if(auth()->user()->allows("productivity.$permissionModule.delete"))<form method="POST" action="{{ route('productivity.destroy', $item) }}" onsubmit="return confirm('Delete this {{ strtolower($item->module) }}?')">@csrf @method('DELETE')<button class="icon-button danger" title="Delete" aria-label="Delete {{ $item->title }}">×</button></form>@endif
+</div>

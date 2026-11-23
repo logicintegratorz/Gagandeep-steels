@@ -9,9 +9,12 @@ use Illuminate\Validation\ValidationException;
 final class LeadController {
  private function access(Request $r,Lead $lead): void {abort_unless(Lead::visibleTo($r->user())->whereKey($lead->id)->exists(),404);}
  private function owners(){return User::with('role')->where('active',true)->orderBy('name')->get()->filter(fn($u)=>$u->allows('leads.view'));}
- private function query(Request $r){
+ private function query(Request $r,bool $platformOnly=true){
   $r->validate(['q'=>'nullable|string|max:150','stage'=>['nullable',Rule::in(Lead::STAGES)],'owner'=>'nullable|integer','priority'=>['nullable',Rule::in(['Low','Normal','High'])],'job_role'=>['nullable',Rule::exists('job_roles','name')]]);
+  // The Leads workspace is reserved for incoming platform leads. The pipeline
+  // also shows manually saved contacts so a stage update is visible immediately.
   $q=Lead::visibleTo($r->user())->with('owner')->withCount('workItems');
+  if($platformOnly)$q->whereNotNull('connection_id');
   if($r->filled('q')) {$term='%'.str_replace(['!','%','_'],['!!','!%','!_'],trim($r->q)).'%';$q->where(fn($q)=>$q->whereRaw("name LIKE ? ESCAPE '!'",[$term])->orWhereRaw("company LIKE ? ESCAPE '!'",[$term])->orWhereRaw("phone LIKE ? ESCAPE '!'",[$term])->orWhereRaw("email LIKE ? ESCAPE '!'",[$term]));}
   foreach(['stage','priority'] as $field) if($r->filled($field)) $q->where($field,$r->input($field));
   if($r->filled('job_role'))$q->where('job_role',$r->input('job_role'));
@@ -25,17 +28,17 @@ final class LeadController {
   $totalLeadCount=(clone $query)->count();
   $untouchedLeadCount=(clone $query)->untouched()->count();
   if($isExtended && $r->input('contacts_filter')==='touched'){
-   $query->where(fn($q)=>$q->whereNotNull('owner_id')->orWhereNotNull('contact_saved_at')->orWhereHas('visits'));
+   $query->where(fn($q)=>$q->whereNotNull('owner_id')->orWhereHas('visits'));
   }elseif(!$isExtended && $r->user()->allows('leads.view_all')){
-   $query->where(fn($q)=>$q->whereNotNull('owner_id')->orWhereNotNull('contact_saved_at'));
+   $query->where(fn($q)=>$q->whereNotNull('owner_id')->orWhereHas('visits'));
   }elseif(!$isExtended){
-   $query->where(fn($q)=>$q->where('owner_id',$r->user()->id)->orWhere(fn($saved)=>$saved->whereNotNull('contact_saved_at')->where('created_by',$r->user()->id)));
+   $query->where('owner_id',$r->user()->id);
   }
   if($r->user()->isAdmin())$query->with('latestVisit.user','latestTransfer');
   return view('leads.index',['leads'=>$query->paginate(20)->withQueryString(),'owners'=>$this->owners(),'jobRoles'=>JobRole::orderBy('name')->pluck('name'),'totalLeadCount'=>$totalLeadCount,'untouchedLeadCount'=>$untouchedLeadCount,'touchedLeadCount'=>$totalLeadCount-$untouchedLeadCount]);
  }
  public function pipeline(Request $r){
-  $base=$this->query($r);$columns=[];
+  $base=$this->query($r,false);$columns=[];
   foreach(Lead::STAGES as $index=>$stage){
    $pageName='stage_page_'.$index;
    $r->validate([$pageName=>'nullable|integer|min:1|max:100000']);
@@ -89,6 +92,7 @@ final class LeadController {
  public function update(Request $r,Lead $lead){$this->access($r,$lead);return $this->save($r,$lead);}
  public function destroy(Request $r,Lead $lead){
   $this->access($r,$lead);
+  $isManualContact=$lead->connection_id===null && $lead->contact_saved_at!==null;
   $data=$r->validate(['version'=>'required|integer']);
   DB::transaction(function()use($r,$lead,$data){
    $item=Lead::lockForUpdate()->findOrFail($lead->id);
@@ -97,7 +101,7 @@ final class LeadController {
    $this->activity($r,$item,'Lead deleted','Lead archived; previous activities and work remain available to administrators.');
    $item->delete();
   });
-  return redirect()->route('leads.index')->with('success','Lead deleted.');
+  return redirect()->route($isManualContact?'contacts.index':'leads.index')->with('success',$isManualContact?'Contact deleted.':'Lead deleted.');
  }
  public function deleteUntouched(Request $r){
   abort_unless($r->user()->allows('leads.delete'),403);
@@ -140,15 +144,15 @@ final class LeadController {
    if($lead){$this->access($r,$item);$this->version($item,$data['version']);}
    $before=$item->getAttributes();unset($data['version']);$item->fill($data);
    [$item->identity_phone,$item->identity_profile]=LeadIdentity::keys($item->name,$item->company,$item->phone,$item->location);
-   if(!$lead){$item->contact_saved_at=$r->user()->isAdmin()?now():null;$item->source=$item->source ?: 'Manual';$item->created_by=$r->user()->id;$item->owner_id=$r->user()->id;}
+   if(!$lead){$item->contact_saved_at=now();$item->source='Manual contact';$item->created_by=$r->user()->id;$item->owner_id=$r->user()->id;}
    $item->version=($item->version??0)+1;$item->save();
    if(!$lead)LeadIdentity::attachPrevious($item);
    $changes=[];foreach($data as $key=>$value) if($lead && (string)($before[$key]??'')!==(string)$value) $changes[]=ucfirst($key).': '.($before[$key]??'—').' → '.($value??'—');
    $this->activity($r,$item,$lead?'Lead updated':'Lead created',implode("\n",$changes));return $item;
   });
-  return $lead
-   ? redirect()->route('leads.index')->with('success','Lead updated.')
-   : redirect()->route('leads.show',$saved)->with('success','Lead created.');
+  if(!$lead)return redirect()->route('contacts.index')->with('success','Contact saved successfully.');
+  $isManualContact=$saved->connection_id===null && $saved->contact_saved_at!==null;
+  return redirect()->route($isManualContact?'contacts.index':'leads.index')->with('success',$isManualContact?'Contact updated.':'Lead updated.');
  }
  public function assign(Request $r,Lead $lead){
   $this->access($r,$lead);$this->transferAccess($r,$lead);$data=$r->validate(['owner_id'=>'required|integer|exists:users,id','version'=>'required|integer']);
@@ -189,7 +193,7 @@ final class LeadController {
  }
  public function stage(Request $r,Lead $lead){
   $this->access($r,$lead);$data=$r->validate(['stage'=>['required',Rule::in(Lead::STAGES)],'version'=>'required|integer','visit_key'=>'nullable|uuid','after_stage'=>['nullable',Rule::in(['new_list','edit','delete'])]]);
-  $item=DB::transaction(function()use($r,$lead,$data){$item=Lead::lockForUpdate()->findOrFail($lead->id);$this->access($r,$item);$this->version($item,$data['version']);if(!empty($data['after_stage']) && $item->stage===$data['stage'])throw \Illuminate\Validation\ValidationException::withMessages(['stage'=>'Choose a different stage before using that action.']);$stageChanged=$item->stage!==$data['stage'];$savedOnWon=$data['stage']==='Won' && !$item->contact_saved_at;if($stageChanged || $savedOnWon){$old=$item->stage;$item->stage=$data['stage'];if($savedOnWon)$item->contact_saved_at=now();$item->version++;$item->save();if($stageChanged)$this->activity($r,$item,'Stage changed',$old.' → '.$item->stage);if($savedOnWon)$this->activity($r,$item,'Saved as contact','Automatically saved when stage changed to Won.');}if($r->filled('visit_key')){$visit=$item->visits()->firstOrCreate(['session_key'=>$r->input('visit_key')],['user_id'=>$r->user()->id,'opened_at'=>now(),'last_seen_at'=>now()]);abort_unless($visit->user_id===$r->user()->id,403);$visit->stage_updated_at=now();$visit->save();}return $item;});
+  $item=DB::transaction(function()use($r,$lead,$data){$item=Lead::lockForUpdate()->findOrFail($lead->id);$this->access($r,$item);$this->version($item,$data['version']);if(!empty($data['after_stage']) && $item->stage===$data['stage'])throw \Illuminate\Validation\ValidationException::withMessages(['stage'=>'Choose a different stage before using that action.']);$stageChanged=$item->stage!==$data['stage'];if($stageChanged){$old=$item->stage;$item->stage=$data['stage'];$item->version++;$item->save();$this->activity($r,$item,'Stage changed',$old.' → '.$item->stage);}if($r->filled('visit_key')){$visit=$item->visits()->firstOrCreate(['session_key'=>$r->input('visit_key')],['user_id'=>$r->user()->id,'opened_at'=>now(),'last_seen_at'=>now()]);abort_unless($visit->user_id===$r->user()->id,403);$visit->stage_updated_at=now();$visit->save();}return $item;});
   if(($data['after_stage'] ?? null)==='new_list' && $r->user()->allows('leads.lists'))return redirect(route('leads.lists',['lead_id'=>$item->id]).'#create-list')->with('success','Stage saved. You can now create a list.');
   if(($data['after_stage'] ?? null)==='edit' && $r->user()->allows('leads.edit'))return redirect()->route('leads.edit',$item)->with('success','Stage saved. You can now edit this lead.');
   if(($data['after_stage'] ?? null)==='delete' && $r->user()->allows('leads.delete'))return redirect()->route('leads.show',$item)->with('stage_cleared_lead',$item->id)->with('success','Stage saved. Review the lead before deleting it.');
@@ -202,6 +206,7 @@ final class LeadController {
  public function work(Request $r){
   $r->validate(['kind'=>['nullable',Rule::in(['Task','Follow-up','Reminder'])],'status'=>['nullable',Rule::in(['Pending','Completed','Cancelled','Overdue','Today'])],'q'=>'nullable|string|max:150']);
   $q=LeadWorkItem::visibleTo($r->user())->with('lead.owner','assignee');
+  if($r->routeIs('leads.work'))$q->whereNotNull('lead_id');
   if($r->filled('kind'))$q->where('kind',$r->kind);
   $status=$r->input('status','Pending');
   if($status==='Overdue')$q->where('status','Pending')->where('due_at','<',now());
@@ -211,6 +216,12 @@ final class LeadController {
   return view('leads.work',['items'=>$q->orderBy('due_at')->paginate(25)->withQueryString(),'owners'=>$this->owners(),'taskStatuses'=>TaskStatus::ordered()->get()]);
  }
  public function tasks(Request $r){$r->merge(['kind'=>'Task']);if(!$r->filled('status'))$r->merge(['status'=>'']);return $this->work($r);}
+ public function storeTask(Request $r){
+  $data=$this->workData($r);$data['kind']='Task';$attachment=$data['attachment']??null;unset($data['attachment']);$data['assigned_to']=$this->workAssignee($r,$r->user()->id,'Task');
+  if($attachment){$data['attachment_path']=$attachment->store('task-attachments');$data['attachment_name']=$attachment->getClientOriginalName();$data['attachment_mime']=$attachment->getMimeType();$data['attachment_size']=$attachment->getSize();}
+  $item=LeadWorkItem::create($data);$this->notifyAssignment($r,$item);
+  return $r->boolean('create_another') ? redirect()->route('tasks.index',['new'=>1])->with('success','Task created. Add another task.') : redirect()->route('tasks.index')->with('success','Task created.');
+ }
  public function addWork(Request $r,Lead $lead){
   abort_unless($r->user()->isAdmin(),403);
   $this->access($r,$lead);$data=$this->workData($r);$attachment=$data['attachment']??null;unset($data['attachment']);$data['assigned_to']=$this->workAssignee($r,$lead->owner_id,$data['kind']);
@@ -220,7 +231,7 @@ final class LeadController {
  }
  public function updateWork(Request $r,LeadWorkItem $item){
   $this->workAccess($r,$item);$data=$this->workData($r)+$r->validate(['version'=>'required|integer']);$attachment=$data['attachment']??null;unset($data['attachment']);abort_unless($r->user()->allows(LeadWorkItem::permissionForKind($data['kind'])),403);$data['assigned_to']=$this->workAssignee($r,$item->assigned_to,$data['kind']);
-  DB::transaction(function()use($r,$item,$data,$attachment){$lead=Lead::lockForUpdate()->findOrFail($item->lead_id);$item=LeadWorkItem::lockForUpdate()->findOrFail($item->id);$this->workAccess($r,$item);$this->version($item,$data['version']);unset($data['version']);$previousAssignee=$item->assignee?->name ?? 'Unassigned';if($attachment){if($item->attachment_path)Storage::delete($item->attachment_path);$data['attachment_path']=$attachment->store('task-attachments');$data['attachment_name']=$attachment->getClientOriginalName();$data['attachment_mime']=$attachment->getMimeType();$data['attachment_size']=$attachment->getSize();}$item->fill($data);$assigneeChanged=$item->isDirty('assigned_to');if($assigneeChanged)$this->notifyAssignment($r,$item);if($item->isDirty(['due_at','assigned_to']))$item->notified_at=null;$item->version++;$item->save();$newAssignee=$assigneeChanged?(User::find($item->assigned_to)?->name ?? 'Unassigned'):$previousAssignee;$this->activity($r,$lead,$item->kind.' updated',$item->title.' · '.$item->due_at->format('d M Y H:i').($assigneeChanged?' · Assigned: '.$previousAssignee.' → '.$newAssignee:''));});
+  DB::transaction(function()use($r,$item,$data,$attachment){$item=LeadWorkItem::lockForUpdate()->findOrFail($item->id);$lead=$item->lead_id?Lead::lockForUpdate()->find($item->lead_id):null;$this->workAccess($r,$item);$this->version($item,$data['version']);unset($data['version']);$previousAssignee=$item->assignee?->name ?? 'Unassigned';if($attachment){if($item->attachment_path)Storage::delete($item->attachment_path);$data['attachment_path']=$attachment->store('task-attachments');$data['attachment_name']=$attachment->getClientOriginalName();$data['attachment_mime']=$attachment->getMimeType();$data['attachment_size']=$attachment->getSize();}$item->fill($data);$assigneeChanged=$item->isDirty('assigned_to');if($assigneeChanged)$this->notifyAssignment($r,$item);if($item->isDirty(['due_at','assigned_to']))$item->notified_at=null;$item->version++;$item->save();$newAssignee=$assigneeChanged?(User::find($item->assigned_to)?->name ?? 'Unassigned'):$previousAssignee;if($lead)$this->activity($r,$lead,$item->kind.' updated',$item->title.' · '.$item->due_at->format('d M Y H:i').($assigneeChanged?' · Assigned: '.$previousAssignee.' → '.$newAssignee:''));});
   return back()->with('success','Work item updated.');
  }
  public function completeWork(Request $r,LeadWorkItem $item){
@@ -230,7 +241,7 @@ final class LeadController {
  }
  public function destroyWork(Request $r,LeadWorkItem $item){
   $this->workAccess($r,$item);abort_unless($item->kind==='Task',422);
-  DB::transaction(function()use($r,$item){$lead=Lead::lockForUpdate()->findOrFail($item->lead_id);$entry=LeadWorkItem::lockForUpdate()->findOrFail($item->id);$this->workAccess($r,$entry);$this->activity($r,$lead,'Task deleted',$entry->title);if($entry->attachment_path)Storage::delete($entry->attachment_path);$entry->delete();});
+  DB::transaction(function()use($r,$item){$entry=LeadWorkItem::lockForUpdate()->findOrFail($item->id);$lead=$entry->lead_id?Lead::lockForUpdate()->find($entry->lead_id):null;$this->workAccess($r,$entry);if($lead)$this->activity($r,$lead,'Task deleted',$entry->title);if($entry->attachment_path)Storage::delete($entry->attachment_path);$entry->delete();});
   return back()->with('success','Task deleted.');
  }
  public function downloadWorkAttachment(Request $r,LeadWorkItem $item){$this->workAccess($r,$item);abort_unless($item->attachment_path&&Storage::exists($item->attachment_path),404);return Storage::download($item->attachment_path,$item->attachment_name);}
@@ -246,7 +257,7 @@ final class LeadController {
   return back()->with('success','Task updated.');
  }
  public function taskAttachment(Request $r,LeadWorkItem $item){$this->workAccess($r,$item);abort_unless($item->kind==='Task',404);$data=$r->validate(['attachment'=>'required|file|max:5120|mimes:jpg,jpeg,png,gif,webp,mp4,mov,pdf,doc,docx,xls,xlsx,ppt,pptx,txt']);if($item->attachment_path)Storage::delete($item->attachment_path);$file=$data['attachment'];$item->attachment_path=$file->store('task-attachments');$item->attachment_name=$file->getClientOriginalName();$item->attachment_mime=$file->getMimeType();$item->attachment_size=$file->getSize();$item->version++;$item->save();return back()->with('success','Task attachment added.');}
- public function saveContact(Request $r,Lead $lead){abort_unless($r->user()->isAdmin(),403);$this->access($r,$lead);DB::transaction(function()use($r,$lead){$item=Lead::lockForUpdate()->findOrFail($lead->id);$this->access($r,$item);if(!$item->contact_saved_at){$item->contact_saved_at=now();$item->version++;$item->save();$this->activity($r,$item,'Saved as contact');}});return back()->with('success','Lead saved to Contacts.');}
+ public function saveContact(Request $r,Lead $lead){$this->access($r,$lead);return redirect()->route('leads.create')->with('status','Create a new contact through the Add Contact form. Platform leads stay in the lead workspace.');}
  public function updateContactInformation(Request $r,Lead $lead){
   $this->access($r,$lead);
   $data=$r->validate(['name'=>'required|string|max:255','company'=>'nullable|string|max:255','website'=>'nullable|url:http,https|max:500','email'=>'nullable|email|max:255','whatsapp'=>'nullable|string|max:60','phone'=>'nullable|string|max:60','alt_phone'=>'nullable|string|max:60','location'=>'nullable|string|max:255','source'=>'nullable|string|max:100','category'=>'nullable|string|max:100','job_role'=>['nullable',Rule::exists('job_roles','name')],'value'=>'nullable|numeric|min:0|max:9999999999999.99','notes'=>'nullable|string|max:20000','version'=>'required|integer']);

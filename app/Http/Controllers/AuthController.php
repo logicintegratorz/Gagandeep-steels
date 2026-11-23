@@ -32,6 +32,7 @@ final class AuthController
         $request->session()->regenerate();
         $request->session()->put([
             'last_activity_at' => now()->timestamp,
+            'inactivity_timeout_minutes' => max(1, (int) $request->user()->inactivity_timeout_minutes ?: 30),
             'login_expires_at' => now('Asia/Kolkata')->startOfDay()->addDay()->timestamp,
             'session_version' => $request->user()->session_version,
         ]);
@@ -47,9 +48,12 @@ final class AuthController
     }
     public function session(Request $request)
     {
+        // Only an explicit user-activity ping extends the inactivity window.
+        if ($request->isMethod('post')) $request->session()->put('last_activity_at', now()->timestamp);
+
         return response()->json([
             'serverNow' => now()->timestamp,
-            'idleExpiresAt' => (int) $request->session()->get('last_activity_at') + 1800,
+            'idleExpiresAt' => (int) $request->session()->get('last_activity_at') + (max(1, (int) $request->user()->inactivity_timeout_minutes ?: 30) * 60),
             'midnightExpiresAt' => (int) $request->session()->get('login_expires_at'),
         ])->header('Cache-Control', 'no-store');
     }
@@ -57,10 +61,12 @@ final class AuthController
     {
         $dashboardGroups=[];$recentLeads=null;$untouchedCount=0;$touchedCount=0;
         if($request->user()->allows('leads.view')) {
-            $leads=\App\Models\Lead::visibleTo($request->user());
+            // Dashboard counts and its table are intentionally limited to leads
+            // received through connected platforms. Manual entries live in Contacts.
+            $leads=\App\Models\Lead::visibleTo($request->user())->whereNotNull('connection_id');
             $work=\App\Models\LeadWorkItem::visibleTo($request->user())->where('status','Pending');
             $dashboardGroups=[
-                'Total Leads'=>['Today’s Leads'=>(clone $leads)->whereDate('created_at',today())->count(),'Uncontacted Leads'=>(clone $leads)->where('stage','New')->count(),'Opened Leads'=>(clone $leads)->whereNotIn('stage',['Won','Lost'])->count(),'Converted Leads'=>(clone $leads)->where('stage','Won')->count(),'Site Visits'=>(clone $leads)->where('stage','Site Approval')->count(),'Manual Leads'=>(clone $leads)->whereNull('connection_id')->count()],
+                'Total Leads'=>['Today’s Leads'=>(clone $leads)->whereDate('created_at',today())->count(),'Uncontacted Leads'=>(clone $leads)->where('stage','New')->count(),'Opened Leads'=>(clone $leads)->whereNotIn('stage',['Won','Lost'])->count(),'Converted Leads'=>(clone $leads)->where('stage','Won')->count(),'Site Visits'=>(clone $leads)->where('stage','Site Approval')->count(),'Platform Leads'=>(clone $leads)->count()],
                 'Total Tasks'=>['Overdue Tasks'=>(clone $work)->where('kind','Task')->where('due_at','<',now())->count(),'My Tasks'=>(clone $work)->where('kind','Task')->where('assigned_to',$request->user()->id)->count(),'My Overdue Tasks'=>(clone $work)->where('kind','Task')->where('due_at','<',now())->where('assigned_to',$request->user()->id)->count()],
                 'Opportunities'=>collect(['Initial Contact','Enquiry Confirmed','Negotiation','Site Approval','Paperwork'])->mapWithKeys(fn($stage)=>[$stage=>(clone $leads)->where('stage',$stage)->count()])->all(),
                 'Reminders'=>['All Reminders'=>(clone $work)->where('kind','Reminder')->count(),'My Reminders'=>(clone $work)->where('kind','Reminder')->where('assigned_to',$request->user()->id)->count(),'Follow-ups'=>(clone $work)->where('kind','Follow-up')->count(),'Due Today'=>(clone $work)->whereDate('due_at',today())->count()],

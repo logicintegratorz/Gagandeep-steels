@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\FreightRateRequest;
 use App\Models\FreightRate;
 use App\Models\Transporter;
+use App\Models\JobRole;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,7 @@ final class FreightRateController
             'transporterCount' => Transporter::count(),
             'average' => FreightRate::avg('price') ?? 0,
             'transporters' => Transporter::orderBy('name')->pluck('name'),
+            'jobRoles' => JobRole::orderBy('name')->pluck('name'),
         ]);
     }
     public function store(FreightRateRequest $request)
